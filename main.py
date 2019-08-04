@@ -117,6 +117,51 @@ createExportDirectory(OUTPUT_PATH)
 pressButtonFrame = np.zeros((WINDOW_W, WINDOW_H, 3), np.uint8)
 writeTextCentered(pressButtonFrame, CAPTURE_TEXT, CAPTURE_SIZE, CAPTURE_THICKNESS)
 
+
+
+
+
+
+
+
+def overlay_transparent(background, overlay, x, y):
+
+    background_width = background.shape[1]
+    background_height = background.shape[0]
+
+    if x >= background_width or y >= background_height:
+        return background
+
+    h, w = overlay.shape[0], overlay.shape[1]
+
+    if x + w > background_width:
+        w = background_width - x
+        overlay = overlay[:, :w]
+
+    if y + h > background_height:
+        h = background_height - y
+        overlay = overlay[:h]
+
+    if overlay.shape[2] < 4:
+        overlay = np.concatenate(
+            [
+                overlay,
+                np.ones((overlay.shape[0], overlay.shape[1], 1), dtype = overlay.dtype) * 255
+            ],
+            axis = 2,
+        )
+
+    overlay_image = overlay[..., :3]
+    mask = overlay[..., 3:] / 255.0
+
+    background[y:y+h, x:x+w] = (1.0 - mask) * background[y:y+h, x:x+w] + mask * overlay_image
+
+
+
+
+
+
+
 while (True):
     print("Ready...")
 
@@ -127,14 +172,20 @@ while (True):
     if k == BUTTON_CAPTURE:
         print("Capture")
         # get camera frame after countdown
-        frame = countdown(COUNTDOWN_TIME)
+        originalFrame = countdown(COUNTDOWN_TIME)
+        overlayFrame = deepcopy(originalFrame)
         
-        # make a copy of camera frame to 
-        dispframe = deepcopy(frame)
+        # add black bar at bottom for button text
+        dispframe = deepcopy(originalFrame)
         cv2.rectangle(dispframe, (0, WINDOW_H - 100), (800, WINDOW_H), (0, 0, 0), -1)
-
         alpha = 0.6
-        dispframe = cv2.addWeighted(dispframe, alpha, frame, 1 - alpha, 0)
+        dispframe = cv2.addWeighted(dispframe, alpha, originalFrame, 1 - alpha, 0)
+
+
+        # overlay graphic
+        overlay = cv2.imread('overlay.png', cv2.IMREAD_UNCHANGED)
+        overlay_transparent(originalFrame, overlay, 30, WINDOW_H - 120)
+
 
         # write start over and print text
         writeText(dispframe, STARTOVER_TEXT, STARTOVER_X, STARTOVER_Y, STARTOVER_SIZE, STARTOVER_THICKNESS)
@@ -152,8 +203,10 @@ while (True):
                 nxt = True
             if k == BUTTON_PRINT:
                 print("Print")
-                filename = '{dir}/photobooth-{date:%Y-%m-%d_%H_%M_%S}.jpeg'.format(dir=OUTPUT_PATH, date=datetime.datetime.now())
-                cv2.imwrite(filename, frame)
+                filenameOriginal = '{dir}/photobooth-{date:%Y-%m-%d_%H_%M_%S}_original.jpeg'.format(dir=OUTPUT_PATH, date=datetime.datetime.now())
+                cv2.imwrite(filenameOriginal, originalFrame)
+                filenameOverlay = '{dir}/photobooth-{date:%Y-%m-%d_%H_%M_%S}_overlay.jpeg'.format(dir=OUTPUT_PATH, date=datetime.datetime.now())
+                cv2.imwrite(filenameOverlay, overlayFrame)
                 nxt = True
         
 
