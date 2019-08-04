@@ -4,6 +4,7 @@ import time
 import os
 import datetime
 import threading
+from copy import deepcopy
 
 WINDOW_W = 512
 WINDOW_H = 512
@@ -19,16 +20,16 @@ CAPTURE_SIZE = 1
 CAPTURE_THICKNESS = 1
 
 STARTOVER_TEXT = "Start Over (s)"
-STARTOVER_X = 10
+STARTOVER_X = 30
 STARTOVER_Y = WINDOW_H - 60
 STARTOVER_SIZE = 1
-STARTOVER_THICKNESS = 2
+STARTOVER_THICKNESS = 1
 
 PRINT_TEXT = "Print! (p)"
-PRINT_TEXT_X = WINDOW_W - 25
+PRINT_TEXT_X = WINDOW_W - 50
 PRINT_TEXT_Y = WINDOW_H - 60
 PRINT_TEXT_SIZE = 1
-PRINT_TEXT_THICKNESS = 2
+PRINT_TEXT_THICKNESS = 1
 
 BUTTON_CAPTURE = 98
 BUTTON_STARTOVER = 115
@@ -75,22 +76,32 @@ def createFrameBlack():
 
 
 def countdown(count):
-    while count > 0:
-        print(count)
+    oldtime = time.time()
+    secs = 0
+    while True:
+        currenttime = time.time()
+
+        #print(count)
         #img = np.zeros((WINDOW_W, WINDOW_H, 3), np.uint8)
         
         ret_val, img = camera.read()
 
-        writeTextCentered(img, str(count), 4, 2)
+        writeTextCentered(img, str(count - secs), 4, 2)
         cv2.imshow('Photobooth', img)
-        cv2.waitKey(1000)
+        cv2.waitKey(1)
         img = createFrameBlack()
-        count -= 1
-    
-    ret, frame = camera.read()
-    #frame = cv2.resize(frame, (0,0), fx=0.5, fy=0.5)
-    #frame = cv2.resize(frame, (512, 512)) 
-    return frame
+
+        print(secs)
+
+        if currenttime - oldtime >= 1:
+            secs += 1
+            oldtime = time.time()
+
+        if secs >= count:
+            ret, frame = camera.read()
+            #frame = cv2.resize(frame, (0,0), fx=0.5, fy=0.5)
+            #frame = cv2.resize(frame, (512, 512)) 
+            return frame
 
 
 
@@ -118,12 +129,19 @@ while (True):
         # get camera frame after countdown
         frame = countdown(COUNTDOWN_TIME)
         
+        # make a copy of camera frame to 
+        dispframe = deepcopy(frame)
+        cv2.rectangle(dispframe, (0, WINDOW_H - 100), (800, WINDOW_H), (0, 0, 0), -1)
+
+        alpha = 0.6
+        dispframe = cv2.addWeighted(dispframe, alpha, frame, 1 - alpha, 0)
+
         # write start over and print text
-        writeText(frame, STARTOVER_TEXT, STARTOVER_X, STARTOVER_Y, STARTOVER_SIZE, STARTOVER_THICKNESS)
-        writeText(frame, PRINT_TEXT, PRINT_TEXT_X, PRINT_TEXT_Y, PRINT_TEXT_SIZE, PRINT_TEXT_THICKNESS)
+        writeText(dispframe, STARTOVER_TEXT, STARTOVER_X, STARTOVER_Y, STARTOVER_SIZE, STARTOVER_THICKNESS)
+        writeText(dispframe, PRINT_TEXT, PRINT_TEXT_X, PRINT_TEXT_Y, PRINT_TEXT_SIZE, PRINT_TEXT_THICKNESS)
         
         # display frame
-        cv2.imshow('Photobooth', frame)
+        cv2.imshow('Photobooth', dispframe)
 
         # wait until start over or print is selected
         nxt = False
@@ -159,4 +177,3 @@ while (True):
 
 cap.release()
 cv2.destroyAllWindows()
-
