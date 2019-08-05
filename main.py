@@ -4,6 +4,7 @@ import time
 import os
 import datetime
 import threading
+from random import randint
 from copy import deepcopy
 
 WINDOW_W = 512
@@ -58,17 +59,17 @@ img = np.zeros((WINDOW_W, WINDOW_H, 3), np.uint8)
 
 
 
-def writeTextCentered(frame, text, size, thickness):
+def writeTextCentered(frame, text, size, thickness, colour):
     textsize = cv2.getTextSize(text, font, 1, 2)[0]
 
     # get coords based on boundary
     textX = (frame.shape[1] - textsize[0]) / 2
     textY = (frame.shape[0] + textsize[1]) / 2
 
-    writeText(frame, text, textX, textY, size, thickness)
+    writeText(frame, text, textX, textY, size, thickness, colour)
 
-def writeText(frame, text, x, y, size, thickness):
-    cv2.putText(frame, text, (x, y), font, size, (255, 255, 255), thickness, cv2.LINE_AA)
+def writeText(frame, text, x, y, size, thickness, colour):
+    cv2.putText(frame, text, (x, y), font, size, colour, thickness, cv2.LINE_AA)
 
 def createFrameBlack():
     return np.zeros((WINDOW_W, WINDOW_H, 3), np.uint8)
@@ -86,7 +87,7 @@ def countdown(count):
         
         ret_val, img = camera.read()
 
-        writeTextCentered(img, str(count - secs), 4, 2)
+        writeTextCentered(img, str(count - secs), 4, 2, (255, 255, 255))
         cv2.imshow('Photobooth', img)
         cv2.waitKey(1)
         img = createFrameBlack()
@@ -115,7 +116,7 @@ def createExportDirectory(path):
 
 createExportDirectory(OUTPUT_PATH)
 pressButtonFrame = np.zeros((WINDOW_W, WINDOW_H, 3), np.uint8)
-writeTextCentered(pressButtonFrame, CAPTURE_TEXT, CAPTURE_SIZE, CAPTURE_THICKNESS)
+writeTextCentered(pressButtonFrame, CAPTURE_TEXT, CAPTURE_SIZE, CAPTURE_THICKNESS, (255, 255, 255))
 
 
 
@@ -177,19 +178,26 @@ while (True):
         
         # add black bar at bottom for button text
         dispframe = deepcopy(originalFrame)
+        """
         cv2.rectangle(dispframe, (0, WINDOW_H - 100), (800, WINDOW_H), (0, 0, 0), -1)
         alpha = 0.6
         dispframe = cv2.addWeighted(dispframe, alpha, originalFrame, 1 - alpha, 0)
-
-
+        """
+        top = int(0.05 * dispframe.shape[0])  # shape[0] = rows
+        bottom = int(0.15 * dispframe.shape[0])
+        left = int(0.05 * dispframe.shape[1])  # shape[1] = cols
+        right = left
+        overlayFrame = cv2.copyMakeBorder(originalFrame, top, bottom, left, right, cv2.BORDER_CONSTANT, None, (255, 255, 255))
+        writeText(overlayFrame, "Rebecca & Harry - Mar Hall - 2019", WINDOW_W/2 - 200, dispframe.shape[0] + 70, STARTOVER_SIZE, STARTOVER_THICKNESS, (0, 0, 0))
+        
         # overlay graphic
-        overlay = cv2.imread('overlay.png', cv2.IMREAD_UNCHANGED)
-        overlay_transparent(originalFrame, overlay, 30, WINDOW_H - 120)
+        #overlay = cv2.imread('overlay.png', cv2.IMREAD_UNCHANGED)
+        #overlay_transparent(originalFrame, overlay, 30, WINDOW_H - 120)
 
 
         # write start over and print text
-        writeText(dispframe, STARTOVER_TEXT, STARTOVER_X, STARTOVER_Y, STARTOVER_SIZE, STARTOVER_THICKNESS)
-        writeText(dispframe, PRINT_TEXT, PRINT_TEXT_X, PRINT_TEXT_Y, PRINT_TEXT_SIZE, PRINT_TEXT_THICKNESS)
+        writeText(dispframe, STARTOVER_TEXT, STARTOVER_X, STARTOVER_Y, STARTOVER_SIZE, STARTOVER_THICKNESS, (255, 255, 255))
+        writeText(dispframe, PRINT_TEXT, PRINT_TEXT_X, PRINT_TEXT_Y, PRINT_TEXT_SIZE, PRINT_TEXT_THICKNESS, (255, 255, 255))
         
         # display frame
         cv2.imshow('Photobooth', dispframe)
