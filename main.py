@@ -6,6 +6,8 @@ import datetime
 import threading
 from random import randint
 from copy import deepcopy
+from pydrive.auth import GoogleAuth
+from pydrive.drive import GoogleDrive
 
 WINDOW_W = 512
 WINDOW_H = 512
@@ -13,7 +15,7 @@ WINDOW_H = 512
 OUTPUT_PATH = "photos"
 OUTPUT_STYLE = 0 # 0 = POLAROID, 1 = OVERLAY GRAPHIC
 
-COUNTDOWN_TIME = 1
+COUNTDOWN_TIME = 2
 
 CAPTURE_TEXT = "Press Button (b)"
 CAPTURE_X = (WINDOW_W / 2) - 50
@@ -40,14 +42,6 @@ BUTTON_PRINT = 112
 COLOUR_WHITE = (255, 255, 255)
 COLOUR_BLACK = (0, 0, 0)
 
-""" notes
-keep original frame size to export
-error checking, output logs
-photo meta data
-display slideshow after period of inactivity
-specific button press to start slideshow
-"""
-
 
 camera = cv2.VideoCapture(0)
 
@@ -60,7 +54,12 @@ cv2.moveWindow("Photobooth", 380, 120)
 FONT_NORMAL = cv2.FONT_HERSHEY_SIMPLEX
 FONT_ITALIC = cv2.FONT_HERSHEY_SCRIPT_COMPLEX
 
-img = np.zeros((WINDOW_W, WINDOW_H, 3), np.uint8)
+
+# GOOGLE DRIVE
+gauth = GoogleAuth()
+gauth.LocalWebserverAuth()
+drive = GoogleDrive(gauth)
+
 
 
 
@@ -192,6 +191,34 @@ def overlayPolaroidFrame(frame):
     return newf
     
 
+def backupToDrive(filename, photo):
+    folder_id = "1U1aCTd_K84IdQQ9_z1UUkZt7EbEk9_qT"
+    #file1 = drive.CreateFile({'title': 'photobooth/Hello.txt'})  # Create GoogleDriveFile instance with title 'Hello.txt'.
+    driveFile = drive.CreateFile({"parents": [{"kind": "drive#fileLink", "id": folder_id}], "title": filename})
+
+    driveFile.SetContentFile(OUTPUT_PATH + filename)
+    #file1.SetContentString('Hello World!') # Set content of the file from given string.
+    driveFile.Upload()
+
+    """ get IDs for files/folders
+    file_list = drive.ListFile({'q': "'root' in parents and trashed=false"}).GetList()
+    for file1 in file_list:       
+        print ('title: %s, id: %s' % (file1['title'], file1['id']))
+    """
+
+
+def savePhoto(original, stylised):
+    # Save photo locally
+    filenameOriginal = 'photobooth-{date:%Y-%m-%d_%H_%M_%S}_original.jpeg'.format(date=datetime.datetime.now())
+    cv2.imwrite(OUTPUT_PATH + filenameOriginal, original)
+    filenameStylised = 'photobooth-{date:%Y-%m-%d_%H_%M_%S}_stylised.jpeg'.format(date=datetime.datetime.now())
+    cv2.imwrite(OUTPUT_PATH + filenameStylised, stylised)
+
+    # Save photo to remote backup
+    backupToDrive(filenameOriginal, original)
+    backupToDrive(filenameStylised, stylised)
+
+
 while (True):
     print("Ready...")
 
@@ -229,14 +256,11 @@ while (True):
                 nxt = True
             if k == BUTTON_PRINT:
                 print("Print")
-                filenameOriginal = '{dir}/photobooth-{date:%Y-%m-%d_%H_%M_%S}_original.jpeg'.format(dir=OUTPUT_PATH, date=datetime.datetime.now())
-                cv2.imwrite(filenameOriginal, originalFrame)
-                filenameOverlay = '{dir}/photobooth-{date:%Y-%m-%d_%H_%M_%S}_overlay.jpeg'.format(dir=OUTPUT_PATH, date=datetime.datetime.now())
-                cv2.imwrite(filenameOverlay, overlayFrame)
+                savePhoto(originalFrame, overlayFrame)
                 nxt = True
         
 
 cv2.waitKey(0)
 
-cap.release()
+camera.release()
 cv2.destroyAllWindows()
