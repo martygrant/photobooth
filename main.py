@@ -8,6 +8,7 @@ from random import randint
 from copy import deepcopy
 from pydrive.auth import GoogleAuth
 from pydrive.drive import GoogleDrive
+import socket
 
 WINDOW_W = 512
 WINDOW_H = 512
@@ -56,9 +57,9 @@ FONT_ITALIC = cv2.FONT_HERSHEY_SCRIPT_COMPLEX
 
 
 # GOOGLE DRIVE
-gauth = GoogleAuth()
-gauth.LocalWebserverAuth()
-drive = GoogleDrive(gauth)
+#gauth = GoogleAuth()
+#gauth.LocalWebserverAuth()
+#drive = GoogleDrive(gauth)
 
 
 
@@ -126,6 +127,20 @@ def createExportDirectory(path):
         print("Directory '%s' already exists" % path)
 
 
+def CheckInternetConnection(host="8.8.8.8", port=53, timeout=3):
+  """
+  Host: 8.8.8.8 (google-public-dns-a.google.com)
+  OpenPort: 53/tcp
+  Service: domain (DNS/TCP)
+  """
+  try:
+    socket.setdefaulttimeout(timeout)
+    socket.socket(socket.AF_INET, socket.SOCK_STREAM).connect((host, port))
+    return True
+  except socket.error as ex:
+    print(ex)
+    return False
+
 
 def overlay_transparent(background, overlay, x, y):
 
@@ -161,7 +176,7 @@ def overlay_transparent(background, overlay, x, y):
 
 
 
-createExportDirectory(OUTPUT_PATH)
+
 pressButtonFrame = np.zeros((WINDOW_W, WINDOW_H, 3), np.uint8)
 writeTextCentered(pressButtonFrame, CAPTURE_TEXT, FONT_NORMAL, CAPTURE_SIZE, CAPTURE_THICKNESS, COLOUR_WHITE)
 
@@ -219,46 +234,74 @@ def savePhoto(original, stylised):
     backupToDrive(filenameStylised, stylised)
 
 
-while (True):
-    print("Ready...")
+def run():
+    while (True):
+        print("Ready...")
 
-    # show start message
-    cv2.imshow('Photobooth', pressButtonFrame)
-    # wait for button press
-    k = cv2.waitKey(0)
-    if k == BUTTON_CAPTURE:
-        print("Capture")
-        # get camera frame after countdown
-        originalFrame = countdown(COUNTDOWN_TIME)
-        overlayFrame = deepcopy(originalFrame)
-        
-        # add black bar at bottom for button text
-        dispframe = deepcopy(originalFrame)
-        
-        addOutputOptionsToDisplayFrame(dispframe)
+        # show start message
+        cv2.imshow('Photobooth', pressButtonFrame)
+        # wait for button press
+        k = cv2.waitKey(0)
+        if k == BUTTON_CAPTURE:
+            print("Capture")
+            # get camera frame after countdown
+            originalFrame = countdown(COUNTDOWN_TIME)
+            overlayFrame = deepcopy(originalFrame)
+            
+            # add black bar at bottom for button text
+            dispframe = deepcopy(originalFrame)
+            
+            addOutputOptionsToDisplayFrame(dispframe)
 
-        # overlay style
-        if OUTPUT_STYLE == 0:
-            overlayFrame = overlayPolaroidFrame(overlayFrame)
-        else:
-            overlayGraphicFrame(overlayFrame)
+            # overlay style
+            if OUTPUT_STYLE == 0:
+                overlayFrame = overlayPolaroidFrame(overlayFrame)
+            else:
+                overlayGraphicFrame(overlayFrame)
 
-        
-        # display frame
-        cv2.imshow('Photobooth', dispframe)
+            
+            # display frame
+            cv2.imshow('Photobooth', dispframe)
 
-        # wait until start over or print is selected
-        nxt = False
-        while not nxt:
-            k = cv2.waitKey(0)
-            if k == BUTTON_STARTOVER:
-                print("Startover")
-                nxt = True
-            if k == BUTTON_PRINT:
-                print("Print")
-                savePhoto(originalFrame, overlayFrame)
-                nxt = True
+            # wait until start over or print is selected
+            nxt = False
+            while not nxt:
+                k = cv2.waitKey(0)
+                if k == BUTTON_STARTOVER:
+                    print("Startover")
+                    nxt = True
+                if k == BUTTON_PRINT:
+                    print("Print")
+                    savePhoto(originalFrame, overlayFrame)
+                    nxt = True
+            
+
+
+
+
+
+
+
+
+
+
+def main():
+    print("Startup")
+    # Check if we have an internet connection
+    if CheckInternetConnection() == True:
+        # Create a local export directory
+        createExportDirectory(OUTPUT_PATH)
         
+        run()
+
+    else:
+        print("not connected")
+
+
+if __name__ == "__main__":
+    main()
+    
+
 
 cv2.waitKey(0)
 
