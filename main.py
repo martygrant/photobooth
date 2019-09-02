@@ -9,6 +9,8 @@ from copy import deepcopy
 from pydrive.auth import GoogleAuth
 from pydrive.drive import GoogleDrive
 import socket
+import picamera.array
+import picamera
 
 WINDOW_W = 512
 WINDOW_H = 512
@@ -44,10 +46,15 @@ COLOUR_WHITE = (255, 255, 255)
 COLOUR_BLACK = (0, 0, 0)
 
 
-camera = cv2.VideoCapture(0)
+##camera = cv2.VideoCapture(0)
+##camera.set(cv2.CAP_PROP_FRAME_WIDTH, 512)
+##camera.set(cv2.CAP_PROP_FRAME_HEIGHT, 512)
+camera = picamera.PiCamera()
+camera.resolution = (640,480)
+camera.framerate = 24
+rawCapture = picamera.array.PiRGBArray(camera, size=(640,480))
+time.sleep(1)
 
-camera.set(cv2.CAP_PROP_FRAME_WIDTH, 512)
-camera.set(cv2.CAP_PROP_FRAME_HEIGHT, 512)
 
 window = cv2.namedWindow("Photobooth")
 cv2.moveWindow("Photobooth", 380, 120)
@@ -82,7 +89,7 @@ def writeTextCenteredHorizontal(frame, text, y, font, size, thickness, colour):
     writeText(frame, text, textX, y, font, size, thickness, colour)
 
 def writeText(frame, text, x, y, font, size, thickness, colour):
-    cv2.putText(frame, text, (x, y), font, size, colour, thickness, cv2.LINE_AA)
+    cv2.putText(frame, text, ((int)x, (int)y), font, size, colour, thickness, cv2.LINE_AA)
 
 def createFrameBlack():
     return np.zeros((WINDOW_W, WINDOW_H, 3), np.uint8)
@@ -98,13 +105,18 @@ def countdown(count):
         #print(count)
         #img = np.zeros((WINDOW_W, WINDOW_H, 3), np.uint8)
         
-        ret_val, img = camera.read()
+##        ret_val, img = camera.read()
+
+        frame = camera.capture_continuous(rawCapture, format="bgr", use_video_port=True)
+        img = frame.array
 
         writeTextCentered(img, str(count - secs), FONT_NORMAL, 4, 2, COLOUR_WHITE)
         cv2.imshow('Photobooth', img)
         cv2.waitKey(1)
         img = createFrameBlack()
 
+        rawCapture.truncate(0)
+    
         print(secs)
 
         if currenttime - oldtime >= 1:
@@ -289,6 +301,8 @@ def main():
     print("Startup")
     # Check if we have an internet connection
     if CheckInternetConnection() == True:
+        print("Connected to internet")
+        
         # Create a local export directory
         createExportDirectory(OUTPUT_PATH)
         
