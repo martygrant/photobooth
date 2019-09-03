@@ -15,10 +15,10 @@ import picamera
 WINDOW_W = 512
 WINDOW_H = 512
 
-OUTPUT_PATH = "photos"
+OUTPUT_PATH = str(os.getcwd()) + "/photos/"
 OUTPUT_STYLE = 0 # 0 = POLAROID, 1 = OVERLAY GRAPHIC
 
-COUNTDOWN_TIME = 2
+COUNTDOWN_TIME = 5
 
 CAPTURE_TEXT = "Press Button (b)"
 CAPTURE_X = (WINDOW_W / 2) - 50
@@ -64,9 +64,9 @@ FONT_ITALIC = cv2.FONT_HERSHEY_SCRIPT_COMPLEX
 
 
 # GOOGLE DRIVE
-#gauth = GoogleAuth()
-#gauth.LocalWebserverAuth()
-#drive = GoogleDrive(gauth)
+gauth = GoogleAuth()
+gauth.LocalWebserverAuth()
+drive = GoogleDrive(gauth)
 
 
 
@@ -89,7 +89,7 @@ def writeTextCenteredHorizontal(frame, text, y, font, size, thickness, colour):
     writeText(frame, text, textX, y, font, size, thickness, colour)
 
 def writeText(frame, text, x, y, font, size, thickness, colour):
-    cv2.putText(frame, text, ((int)x, (int)y), font, size, colour, thickness, cv2.LINE_AA)
+    cv2.putText(frame, text, (int(x), int(y)), font, size, colour, thickness, cv2.LINE_AA)
 
 def createFrameBlack():
     return np.zeros((WINDOW_W, WINDOW_H, 3), np.uint8)
@@ -107,8 +107,12 @@ def countdown(count):
         
 ##        ret_val, img = camera.read()
 
-        frame = camera.capture_continuous(rawCapture, format="bgr", use_video_port=True)
-        img = frame.array
+##        frame = camera.capture_continuous(rawCapture, format="bgr", use_video_port=True)
+##        print(dir(frame))
+##        img = frame.array
+
+        camera.capture(rawCapture, 'bgr', use_video_port=True)
+        img = rawCapture.array
 
         writeTextCentered(img, str(count - secs), FONT_NORMAL, 4, 2, COLOUR_WHITE)
         cv2.imshow('Photobooth', img)
@@ -124,10 +128,10 @@ def countdown(count):
             oldtime = time.time()
 
         if secs >= count:
-            ret, frame = camera.read()
+##            ret, frame = camera.read()
             #frame = cv2.resize(frame, (0,0), fx=0.5, fy=0.5)
             #frame = cv2.resize(frame, (512, 512)) 
-            return frame
+            return img
 
 
 
@@ -135,6 +139,7 @@ def createExportDirectory(path):
     if not os.path.exists(path):
         os.makedirs(path)
         print("Created directory '%s'" % path)
+            
     else:
         print("Directory '%s' already exists" % path)
 
@@ -188,7 +193,8 @@ def overlay_transparent(background, overlay, x, y):
 
 
 
-
+originalFrame = np.zeros((WINDOW_W, WINDOW_H, 3), np.uint8)
+dispframe = np.zeros((WINDOW_W, WINDOW_H, 3), np.uint8)
 pressButtonFrame = np.zeros((WINDOW_W, WINDOW_H, 3), np.uint8)
 writeTextCentered(pressButtonFrame, CAPTURE_TEXT, FONT_NORMAL, CAPTURE_SIZE, CAPTURE_THICKNESS, COLOUR_WHITE)
 
@@ -199,8 +205,8 @@ def addOutputOptionsToDisplayFrame(frame):
     frame = cv2.addWeighted(frame, alpha, originalFrame, 1 - alpha, 0)
 
     # write start over and print text
-    writeText(dispframe, STARTOVER_TEXT, STARTOVER_X, STARTOVER_Y, FONT_NORMAL, STARTOVER_SIZE, STARTOVER_THICKNESS, COLOUR_WHITE)
-    writeText(dispframe, PRINT_TEXT, PRINT_TEXT_X, PRINT_TEXT_Y, FONT_NORMAL, PRINT_TEXT_SIZE, PRINT_TEXT_THICKNESS, COLOUR_WHITE)
+    writeText(frame, STARTOVER_TEXT, STARTOVER_X, STARTOVER_Y, FONT_NORMAL, STARTOVER_SIZE, STARTOVER_THICKNESS, COLOUR_WHITE)
+    writeText(frame, PRINT_TEXT, PRINT_TEXT_X, PRINT_TEXT_Y, FONT_NORMAL, PRINT_TEXT_SIZE, PRINT_TEXT_THICKNESS, COLOUR_WHITE)
         
 
 
@@ -218,7 +224,7 @@ def overlayPolaroidFrame(frame):
     return newf
     
 
-def backupToDrive(filename, photo):
+def backupToGoogleDrive(filename, photo):
     folder_id = "1U1aCTd_K84IdQQ9_z1UUkZt7EbEk9_qT"
     #file1 = drive.CreateFile({'title': 'photobooth/Hello.txt'})  # Create GoogleDriveFile instance with title 'Hello.txt'.
     driveFile = drive.CreateFile({"parents": [{"kind": "drive#fileLink", "id": folder_id}], "title": filename})
@@ -233,6 +239,9 @@ def backupToDrive(filename, photo):
         print ('title: %s, id: %s' % (file1['title'], file1['id']))
     """
 
+def saveToUSB(filename, image):
+    path = "/media/pi/2A47-4A89/photobooth/"
+    cv2.imwrite(path + filename, image)
 
 def savePhoto(original, stylised):
     # Save photo locally
@@ -242,8 +251,12 @@ def savePhoto(original, stylised):
     cv2.imwrite(OUTPUT_PATH + filenameStylised, stylised)
 
     # Save photo to remote backup
-    backupToDrive(filenameOriginal, original)
-    backupToDrive(filenameStylised, stylised)
+    backupToGoogleDrive(filenameOriginal, original)
+    backupToGoogleDrive(filenameStylised, stylised)
+
+    # Save photo to external usb drive
+    saveToUSB(filenameOriginal, original)
+    saveToUSB(filenameStylised, stylised)
 
 
 def run():
@@ -309,6 +322,7 @@ def main():
         run()
 
     else:
+        run()
         print("not connected")
 
 
