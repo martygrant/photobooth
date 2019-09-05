@@ -64,9 +64,9 @@ FONT_ITALIC = cv2.FONT_HERSHEY_SCRIPT_COMPLEX
 
 
 # GOOGLE DRIVE
-gauth = GoogleAuth()
-gauth.LocalWebserverAuth()
-drive = GoogleDrive(gauth)
+##gauth = GoogleAuth()
+##gauth.LocalWebserverAuth()
+##drive = GoogleDrive(gauth)
 
 
 
@@ -117,7 +117,7 @@ def countdown(count):
         writeTextCentered(img, str(count - secs), FONT_NORMAL, 4, 2, COLOUR_WHITE)
         cv2.imshow('Photobooth', img)
         cv2.waitKey(1)
-        img = createFrameBlack()
+##        img = createFrameBlack()
 
         rawCapture.truncate(0)
     
@@ -130,8 +130,10 @@ def countdown(count):
         if secs >= count:
 ##            ret, frame = camera.read()
             #frame = cv2.resize(frame, (0,0), fx=0.5, fy=0.5)
-            #frame = cv2.resize(frame, (512, 512)) 
-            return img
+            #frame = cv2.resize(frame, (512, 512))
+            camera.capture(rawCapture, 'bgr', use_video_port=True)
+            finalImg = rawCapture.array
+            return finalImg
 
 
 
@@ -193,8 +195,6 @@ def overlay_transparent(background, overlay, x, y):
 
 
 
-originalFrame = np.zeros((WINDOW_W, WINDOW_H, 3), np.uint8)
-dispframe = np.zeros((WINDOW_W, WINDOW_H, 3), np.uint8)
 pressButtonFrame = np.zeros((WINDOW_W, WINDOW_H, 3), np.uint8)
 writeTextCentered(pressButtonFrame, CAPTURE_TEXT, FONT_NORMAL, CAPTURE_SIZE, CAPTURE_THICKNESS, COLOUR_WHITE)
 
@@ -202,12 +202,11 @@ writeTextCentered(pressButtonFrame, CAPTURE_TEXT, FONT_NORMAL, CAPTURE_SIZE, CAP
 def addOutputOptionsToDisplayFrame(frame):
     cv2.rectangle(frame, (0, WINDOW_H - 100), (800, WINDOW_H), COLOUR_BLACK, -1)
     alpha = 0.6
-    frame = cv2.addWeighted(frame, alpha, originalFrame, 1 - alpha, 0)
+    cv2.addWeighted(frame, alpha, frame, 1 - alpha, 0)
 
     # write start over and print text
     writeText(frame, STARTOVER_TEXT, STARTOVER_X, STARTOVER_Y, FONT_NORMAL, STARTOVER_SIZE, STARTOVER_THICKNESS, COLOUR_WHITE)
     writeText(frame, PRINT_TEXT, PRINT_TEXT_X, PRINT_TEXT_Y, FONT_NORMAL, PRINT_TEXT_SIZE, PRINT_TEXT_THICKNESS, COLOUR_WHITE)
-        
 
 
 def overlayGraphicFrame(frame):
@@ -251,8 +250,8 @@ def savePhoto(original, stylised):
     cv2.imwrite(OUTPUT_PATH + filenameStylised, stylised)
 
     # Save photo to remote backup
-    backupToGoogleDrive(filenameOriginal, original)
-    backupToGoogleDrive(filenameStylised, stylised)
+##    backupToGoogleDrive(filenameOriginal, original)
+##    backupToGoogleDrive(filenameStylised, stylised)
 
     # Save photo to external usb drive
     saveToUSB(filenameOriginal, original)
@@ -275,7 +274,6 @@ def run():
             
             # add black bar at bottom for button text
             dispframe = deepcopy(originalFrame)
-            
             addOutputOptionsToDisplayFrame(dispframe)
 
             # overlay style
@@ -302,18 +300,10 @@ def run():
             
 
 
-
-
-
-
-
-
-
-
 def main():
     print("Startup")
     # Check if we have an internet connection
-    if CheckInternetConnection() == True:
+    """if CheckInternetConnection() == True:
         print("Connected to internet")
         
         # Create a local export directory
@@ -324,7 +314,8 @@ def main():
     else:
         run()
         print("not connected")
-
+    """
+    run()
 
 if __name__ == "__main__":
     main()
