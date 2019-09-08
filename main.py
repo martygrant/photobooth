@@ -18,7 +18,7 @@ WINDOW_H = 512
 OUTPUT_PATH = str(os.getcwd()) + "/photos/"
 OUTPUT_STYLE = 0 # 0 = POLAROID, 1 = OVERLAY GRAPHIC
 
-COUNTDOWN_TIME = 5
+COUNTDOWN_TIME = 3
 
 CAPTURE_TEXT = "Press Button (b)"
 CAPTURE_X = (WINDOW_W / 2) - 50
@@ -216,13 +216,16 @@ def CheckInternetConnection(host="8.8.8.8", port=53, timeout=3):
 
 def backupToGoogleDrive(filename, photo):
     if CheckInternetConnection():
+        http = drive.auth.Get_Http_Object()
+        
         folder_id = "1U1aCTd_K84IdQQ9_z1UUkZt7EbEk9_qT"
         #file1 = drive.CreateFile({'title': 'photobooth/Hello.txt'})  # Create GoogleDriveFile instance with title 'Hello.txt'.
         driveFile = drive.CreateFile({"parents": [{"kind": "drive#fileLink", "id": folder_id}], "title": filename})
 
         driveFile.SetContentFile(OUTPUT_PATH + filename)
         #file1.SetContentString('Hello World!') # Set content of the file from given string.
-        driveFile.Upload()
+        driveFile.Upload(param={"http": http})
+            
         print("SUCCESS: Uploaded to GDrive:", filename)
     else:
         print("ERROR: Did not save to GDrive. No internet connection.")
@@ -261,9 +264,22 @@ def savePhoto(original, stylised):
     cv2.imwrite(OUTPUT_PATH + filenameStylised, stylised)
     print("SUCCESS: Saved locally:", filenameStylised)
 
+
+    old = time.time()
+    
     # Save photo to remote backup
-    backupToGoogleDrive(filenameOriginal, original)
-    backupToGoogleDrive(filenameStylised, stylised)
+    uploadThreadOne = threading.Thread(target=backupToGoogleDrive, args=(filenameOriginal, original))
+    uploadThreadOne.start()
+    uploadThreadTwo = threading.Thread(target=backupToGoogleDrive, args=(filenameStylised, stylised))
+    uploadThreadTwo.start()
+
+    # TODO PROBABLY DON'T NEED TO WAIT, TAKES ~2SECS, RESEARCH THIS
+    uploadThreadOne.join()
+    uploadThreadTwo.join()
+
+    now = time.time()
+    print("upload took", now - old)
+        
 
     # Save photo to external usb drive
     saveToUSB(filenameOriginal, original)
