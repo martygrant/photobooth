@@ -101,26 +101,18 @@ def countdown(count):
     secs = 0
     while True:
         currenttime = time.time()
-
-        #print(count)
-        #img = np.zeros((WINDOW_W, WINDOW_H, 3), np.uint8)
-        
-##        ret_val, img = camera.read()
-
-##        frame = camera.capture_continuous(rawCapture, format="bgr", use_video_port=True)
-##        print(dir(frame))
-##        img = frame.array
+        print(dir(camera))
 
         camera.capture(rawCapture, 'bgr', use_video_port=True)
         img = rawCapture.array
-
+            
         writeTextCentered(img, str(count - secs), FONT_NORMAL, 4, 2, COLOUR_WHITE)
         cv2.imshow('Photobooth', img)
         cv2.waitKey(1)
-##        img = createFrameBlack()
+        #img = createFrameBlack()
 
         rawCapture.truncate(0)
-    
+        
         print(secs)
 
         if currenttime - oldtime >= 1:
@@ -128,7 +120,7 @@ def countdown(count):
             oldtime = time.time()
 
         if secs >= count:
-##            ret, frame = camera.read()
+            #ret, frame = camera.read()
             #frame = cv2.resize(frame, (0,0), fx=0.5, fy=0.5)
             #frame = cv2.resize(frame, (512, 512))
             camera.capture(rawCapture, 'bgr', use_video_port=True)
@@ -137,28 +129,8 @@ def countdown(count):
 
 
 
-def createExportDirectory(path):
-    if not os.path.exists(path):
-        os.makedirs(path)
-        print("Created directory '%s'" % path)
-            
-    else:
-        print("Directory '%s' already exists" % path)
 
 
-def CheckInternetConnection(host="8.8.8.8", port=53, timeout=3):
-  """
-  Host: 8.8.8.8 (google-public-dns-a.google.com)
-  OpenPort: 53/tcp
-  Service: domain (DNS/TCP)
-  """
-  try:
-    socket.setdefaulttimeout(timeout)
-    socket.socket(socket.AF_INET, socket.SOCK_STREAM).connect((host, port))
-    return True
-  except socket.error as ex:
-    print(ex)
-    return False
 
 
 def overlay_transparent(background, overlay, x, y):
@@ -221,6 +193,30 @@ def overlayPolaroidFrame(frame):
     newf = cv2.copyMakeBorder(frame, top, bottom, left, right, cv2.BORDER_CONSTANT, None, COLOUR_WHITE)
     writeTextCenteredHorizontal(newf, "Rebecca & Harry - Mar Hall - 2019", newf.shape[0] - 30, FONT_ITALIC, STARTOVER_SIZE, STARTOVER_THICKNESS, COLOUR_BLACK)
     return newf
+
+
+def createExportDirectory(path):
+    if not os.path.exists(path):
+        os.makedirs(path)
+        print("Created directory '%s'" % path)
+            
+    else:
+        print("Directory '%s' already exists" % path)
+
+
+def CheckInternetConnection(host="8.8.8.8", port=53, timeout=3):
+  """
+  Host: 8.8.8.8 (google-public-dns-a.google.com)
+  OpenPort: 53/tcp
+  Service: domain (DNS/TCP)
+  """
+  try:
+    socket.setdefaulttimeout(timeout)
+    socket.socket(socket.AF_INET, socket.SOCK_STREAM).connect((host, port))
+    return True
+  except socket.error as ex:
+    print(ex)
+    return False
     
 
 def backupToGoogleDrive(filename, photo):
@@ -238,9 +234,22 @@ def backupToGoogleDrive(filename, photo):
         print ('title: %s, id: %s' % (file1['title'], file1['id']))
     """
 
+def checkUSBConnected():
+    if not os.path.exists("/media/pi/2A47-4A89/photobooth/"):
+        print("ERROR: USB Drive not found.")
+        return False
+    else:
+        print("USB Drive connected.")
+        return True
+
 def saveToUSB(filename, image):
     path = "/media/pi/2A47-4A89/photobooth/"
-    cv2.imwrite(path + filename, image)
+    if checkUSBConnected() == True:
+        cv2.imwrite(path + filename, image)
+        print("Saved to USB Drive", filename)
+    else:
+        print("ERROR: Did not save to USB Drive: ", filename) 
+        
 
 def savePhoto(original, stylised):
     # Save photo locally
@@ -308,6 +317,8 @@ def main():
         
         # Create a local export directory
         createExportDirectory(OUTPUT_PATH)
+
+        checkUSBConnected()
         
         run()
 
@@ -315,6 +326,7 @@ def main():
         run()
         print("not connected")
     """
+    checkUSBConnected()
     run()
 
 if __name__ == "__main__":
