@@ -64,9 +64,9 @@ FONT_ITALIC = cv2.FONT_HERSHEY_SCRIPT_COMPLEX
 
 
 # GOOGLE DRIVE
-##gauth = GoogleAuth()
-##gauth.LocalWebserverAuth()
-##drive = GoogleDrive(gauth)
+gauth = GoogleAuth()
+gauth.LocalWebserverAuth()
+drive = GoogleDrive(gauth)
 
 
 
@@ -122,6 +122,7 @@ def countdown(countdown):
             #frame = cv2.resize(frame, (512, 512))
             # todo try changing video port part
             camera.capture(rawCapture, 'bgr', use_video_port=False)
+            rawCapture.truncate(0) # check this for colour diff after first image
             return rawCapture.array
             
 
@@ -191,10 +192,10 @@ def overlayPolaroidFrame(frame):
 def createExportDirectory(path):
     if not os.path.exists(path):
         os.makedirs(path)
-        print("Created directory '%s'" % path)
+        print("SUCCESS: Created directory '%s'" % path)
             
     else:
-        print("Directory '%s' already exists" % path)
+        print("INFO: Directory '%s' already exists" % path)
 
 
 def CheckInternetConnection(host="8.8.8.8", port=53, timeout=3):
@@ -206,20 +207,25 @@ def CheckInternetConnection(host="8.8.8.8", port=53, timeout=3):
   try:
     socket.setdefaulttimeout(timeout)
     socket.socket(socket.AF_INET, socket.SOCK_STREAM).connect((host, port))
+    print("SUCCESS: Connected to internet.")
     return True
   except socket.error as ex:
-    print(ex)
+    print("ERROR: No internet connection:", ex)
     return False
     
 
 def backupToGoogleDrive(filename, photo):
-    folder_id = "1U1aCTd_K84IdQQ9_z1UUkZt7EbEk9_qT"
-    #file1 = drive.CreateFile({'title': 'photobooth/Hello.txt'})  # Create GoogleDriveFile instance with title 'Hello.txt'.
-    driveFile = drive.CreateFile({"parents": [{"kind": "drive#fileLink", "id": folder_id}], "title": filename})
+    if CheckInternetConnection():
+        folder_id = "1U1aCTd_K84IdQQ9_z1UUkZt7EbEk9_qT"
+        #file1 = drive.CreateFile({'title': 'photobooth/Hello.txt'})  # Create GoogleDriveFile instance with title 'Hello.txt'.
+        driveFile = drive.CreateFile({"parents": [{"kind": "drive#fileLink", "id": folder_id}], "title": filename})
 
-    driveFile.SetContentFile(OUTPUT_PATH + filename)
-    #file1.SetContentString('Hello World!') # Set content of the file from given string.
-    driveFile.Upload()
+        driveFile.SetContentFile(OUTPUT_PATH + filename)
+        #file1.SetContentString('Hello World!') # Set content of the file from given string.
+        driveFile.Upload()
+        print("SUCCESS: Uploaded to GDrive:", filename)
+    else:
+        print("ERROR: Did not save to GDrive. No internet connection.")
 
     """ get IDs for files/folders
     file_list = drive.ListFile({'q': "'root' in parents and trashed=false"}).GetList()
@@ -232,7 +238,7 @@ def checkUSBConnected():
         print("ERROR: USB Drive not found.")
         return False
     else:
-        print("USB Drive connected.")
+        print("SUCCESS: USB Drive connected.")
         return True
 
 
@@ -240,24 +246,24 @@ def saveToUSB(filename, image):
     path = "/media/pi/2A47-4A89/photobooth/"
     if checkUSBConnected() == True:
         cv2.imwrite(path + filename, image)
-        print("Saved to USB Drive: ", filename)
+        print("SUCCESS: Saved to USB Drive:", filename)
     else:
-        print("ERROR: Did not save to USB Drive: ", filename) 
+        print("ERROR: Did not save to USB Drive:", filename) 
 
 
 def savePhoto(original, stylised):
     # Save photo locally
     filenameOriginal = 'photobooth-{date:%Y-%m-%d_%H_%M_%S}_original.jpeg'.format(date=datetime.datetime.now())
     cv2.imwrite(OUTPUT_PATH + filenameOriginal, original)
-    print("Saved locally: ", filenameOriginal)
+    print("SUCCESS: Saved locally:", filenameOriginal)
     
     filenameStylised = 'photobooth-{date:%Y-%m-%d_%H_%M_%S}_stylised.jpeg'.format(date=datetime.datetime.now())
     cv2.imwrite(OUTPUT_PATH + filenameStylised, stylised)
-    print("Saved locally: ", filenameStylised)
+    print("SUCCESS: Saved locally:", filenameStylised)
 
     # Save photo to remote backup
-    #backupToGoogleDrive(filenameOriginal, original)
-    #backupToGoogleDrive(filenameStylised, stylised)
+    backupToGoogleDrive(filenameOriginal, original)
+    backupToGoogleDrive(filenameStylised, stylised)
 
     # Save photo to external usb drive
     saveToUSB(filenameOriginal, original)
@@ -310,7 +316,7 @@ def main():
     print("Startup")
     # Check if we have an internet connection
     """if CheckInternetConnection() == True:
-        print("Connected to internet")
+        
         
         # Create a local export directory
         createExportDirectory(OUTPUT_PATH)
@@ -323,7 +329,9 @@ def main():
         run()
         print("not connected")
     """
+    CheckInternetConnection()
     checkUSBConnected()
+
     run()
 
 if __name__ == "__main__":
