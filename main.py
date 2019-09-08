@@ -96,9 +96,8 @@ def createFrameBlack():
 
 
 
-def countdown(count):
+def countdown(countdown):
     oldtime = time.time()
-    secs = 0
     while True:
         currenttime = time.time()
         print(dir(camera))
@@ -106,31 +105,25 @@ def countdown(count):
         camera.capture(rawCapture, 'bgr', use_video_port=True)
         img = rawCapture.array
             
-        writeTextCentered(img, str(count - secs), FONT_NORMAL, 4, 2, COLOUR_WHITE)
+        writeTextCentered(img, str(countdown), FONT_NORMAL, 4, 2, COLOUR_WHITE)
         cv2.imshow('Photobooth', img)
         cv2.waitKey(1)
-        #img = createFrameBlack()
 
         rawCapture.truncate(0)
         
-        print(secs)
-
         if currenttime - oldtime >= 1:
-            secs += 1
+            countdown -= 1
             oldtime = time.time()
+            print(countdown)
 
-        if secs >= count:
+        if countdown < 1:
             #ret, frame = camera.read()
             #frame = cv2.resize(frame, (0,0), fx=0.5, fy=0.5)
             #frame = cv2.resize(frame, (512, 512))
-            camera.capture(rawCapture, 'bgr', use_video_port=True)
-            finalImg = rawCapture.array
-            return finalImg
-
-
-
-
-
+            # todo try changing video port part
+            camera.capture(rawCapture, 'bgr', use_video_port=False)
+            return rawCapture.array
+            
 
 
 def overlay_transparent(background, overlay, x, y):
