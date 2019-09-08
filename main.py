@@ -235,25 +235,29 @@ def checkUSBConnected():
         print("USB Drive connected.")
         return True
 
+
 def saveToUSB(filename, image):
     path = "/media/pi/2A47-4A89/photobooth/"
     if checkUSBConnected() == True:
         cv2.imwrite(path + filename, image)
-        print("Saved to USB Drive", filename)
+        print("Saved to USB Drive: ", filename)
     else:
         print("ERROR: Did not save to USB Drive: ", filename) 
-        
+
 
 def savePhoto(original, stylised):
     # Save photo locally
     filenameOriginal = 'photobooth-{date:%Y-%m-%d_%H_%M_%S}_original.jpeg'.format(date=datetime.datetime.now())
     cv2.imwrite(OUTPUT_PATH + filenameOriginal, original)
+    print("Saved locally: ", filenameOriginal)
+    
     filenameStylised = 'photobooth-{date:%Y-%m-%d_%H_%M_%S}_stylised.jpeg'.format(date=datetime.datetime.now())
     cv2.imwrite(OUTPUT_PATH + filenameStylised, stylised)
+    print("Saved locally: ", filenameStylised)
 
     # Save photo to remote backup
-##    backupToGoogleDrive(filenameOriginal, original)
-##    backupToGoogleDrive(filenameStylised, stylised)
+    #backupToGoogleDrive(filenameOriginal, original)
+    #backupToGoogleDrive(filenameStylised, stylised)
 
     # Save photo to external usb drive
     saveToUSB(filenameOriginal, original)
