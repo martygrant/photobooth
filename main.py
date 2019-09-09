@@ -11,9 +11,10 @@ from pydrive.drive import GoogleDrive
 import socket
 import picamera.array
 import picamera
+import subprocess
 
-WINDOW_W = 512
-WINDOW_H = 512
+WINDOW_W = 1440
+WINDOW_H = 900
 
 OUTPUT_PATH = str(os.getcwd()) + "/photos/"
 OUTPUT_STYLE = 0 # 0 = POLAROID, 1 = OVERLAY GRAPHIC
@@ -27,13 +28,13 @@ CAPTURE_SIZE = 1
 CAPTURE_THICKNESS = 1
 
 STARTOVER_TEXT = "Start Over (s)"
-STARTOVER_X = 30
+STARTOVER_X = 100
 STARTOVER_Y = WINDOW_H - 60
 STARTOVER_SIZE = 1
 STARTOVER_THICKNESS = 1
 
 PRINT_TEXT = "Print! (p)"
-PRINT_TEXT_X = WINDOW_W - 50
+PRINT_TEXT_X = WINDOW_W - 100
 PRINT_TEXT_Y = WINDOW_H - 60
 PRINT_TEXT_SIZE = 1
 PRINT_TEXT_THICKNESS = 1
@@ -46,27 +47,32 @@ COLOUR_WHITE = (255, 255, 255)
 COLOUR_BLACK = (0, 0, 0)
 
 
+resw = 1920
+resh = 1080
+
 ##camera = cv2.VideoCapture(0)
 ##camera.set(cv2.CAP_PROP_FRAME_WIDTH, 512)
 ##camera.set(cv2.CAP_PROP_FRAME_HEIGHT, 512)
-camera = picamera.PiCamera()
-camera.resolution = (640,480)
+camera = picamera.PiCamera()#sensor_mode=2)
+camera.resolution = (resw,resh)
 camera.framerate = 24
-rawCapture = picamera.array.PiRGBArray(camera, size=(640,480))
+camera.brightness = 60
+rawCapture = picamera.array.PiRGBArray(camera, size=(resw,resh))
 time.sleep(1)
 
 
-window = cv2.namedWindow("Photobooth")
-cv2.moveWindow("Photobooth", 380, 120)
+window = cv2.namedWindow("Photobooth", cv2.WINDOW_NORMAL)
+cv2.setWindowProperty('Photobooth', cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
+#cv2.moveWindow("Photobooth", 0, 900)
 
 FONT_NORMAL = cv2.FONT_HERSHEY_SIMPLEX
 FONT_ITALIC = cv2.FONT_HERSHEY_SCRIPT_COMPLEX
 
 
 # GOOGLE DRIVE
-gauth = GoogleAuth()
-gauth.LocalWebserverAuth()
-drive = GoogleDrive(gauth)
+#gauth = GoogleAuth()
+#gauth.LocalWebserverAuth()
+#drive = GoogleDrive(gauth)
 
 
 
@@ -92,7 +98,7 @@ def writeText(frame, text, x, y, font, size, thickness, colour):
     cv2.putText(frame, text, (int(x), int(y)), font, size, colour, thickness, cv2.LINE_AA)
 
 def createFrameBlack():
-    return np.zeros((WINDOW_W, WINDOW_H, 3), np.uint8)
+    return np.zeros((WINDOW_H, WINDOW_W, 3), np.uint8)
 
 
 
@@ -102,13 +108,22 @@ def countdown(countdown):
         currenttime = time.time()
         print(dir(camera))
 
+        # get image from camera
         camera.capture(rawCapture, 'bgr', use_video_port=True)
         img = rawCapture.array
-            
+
+        # make preview fit window
+        img = cv2.resize(img, (1440, 900))
+
+        # write countdown on image
         writeTextCentered(img, str(countdown), FONT_NORMAL, 4, 2, COLOUR_WHITE)
+
+        # display image
         cv2.imshow('Photobooth', img)
         cv2.waitKey(1)
 
+        # reset camera
+        rawCapture.seek(0)
         rawCapture.truncate(0)
         
         if currenttime - oldtime >= 1:
@@ -122,8 +137,14 @@ def countdown(countdown):
             #frame = cv2.resize(frame, (512, 512))
             # todo try changing video port part
             camera.capture(rawCapture, 'bgr', use_video_port=False)
+
+            img = rawCapture.array
+            #img = cv2.resize(img, (0,0), fx=0.5, fy=0.5)
+            #img = cv2.resize(img, (1440, 900))
+            
+            rawCapture.seek(0)
             rawCapture.truncate(0) # check this for colour diff after first image
-            return rawCapture.array
+            return img
             
 
 
@@ -161,14 +182,21 @@ def overlay_transparent(background, overlay, x, y):
 
 
 
-pressButtonFrame = np.zeros((WINDOW_W, WINDOW_H, 3), np.uint8)
+pressButtonFrame = np.zeros((WINDOW_H, WINDOW_W, 3), np.uint8)
 writeTextCentered(pressButtonFrame, CAPTURE_TEXT, FONT_NORMAL, CAPTURE_SIZE, CAPTURE_THICKNESS, COLOUR_WHITE)
 
 
 def addOutputOptionsToDisplayFrame(frame):
-    cv2.rectangle(frame, (0, WINDOW_H - 100), (800, WINDOW_H), COLOUR_BLACK, -1)
+    x = 0 + 50
+    y = WINDOW_H - 200
+    w = WINDOW_W - 100
+    h = 100
+
+    overlay = frame.copy()
+    
+    cv2.rectangle(overlay, (x, y), (x+w, y+h), COLOUR_BLACK, -1)
     alpha = 0.6
-    cv2.addWeighted(frame, alpha, frame, 1 - alpha, 0)
+    cv2.addWeighted(overlay, alpha, frame, 1 - alpha, 0, frame)
 
     # write start over and print text
     writeText(frame, STARTOVER_TEXT, STARTOVER_X, STARTOVER_Y, FONT_NORMAL, STARTOVER_SIZE, STARTOVER_THICKNESS, COLOUR_WHITE)
@@ -296,22 +324,22 @@ def run():
         k = cv2.waitKey(0)
         if k == BUTTON_CAPTURE:
             print("Capture")
-            # get camera frame after countdown
+            # ORIGINAL frame (from camera)
             originalFrame = countdown(COUNTDOWN_TIME)
-            overlayFrame = deepcopy(originalFrame)
-            
-            # add black bar at bottom for button text
-            dispframe = deepcopy(originalFrame)
-            addOutputOptionsToDisplayFrame(dispframe)
 
-            # overlay style
+            # STYLISED frame (for printing)
+            stylisedFrame = deepcopy(originalFrame)
             if OUTPUT_STYLE == 0:
-                overlayFrame = overlayPolaroidFrame(overlayFrame)
+                stylisedFrame = overlayPolaroidFrame(stylisedFrame)
             else:
-                overlayGraphicFrame(overlayFrame)
+                overlayGraphicFrame(stylisedFrame)
 
+            # DISPLAY frame (for screen)
+            dispframe = deepcopy(originalFrame)            
+            # add black bar at bottom for button text
+            dispframe = cv2.resize(dispframe, (1440, 900))
+            addOutputOptionsToDisplayFrame(dispframe)
             
-            # display frame
             cv2.imshow('Photobooth', dispframe)
 
             # wait until start over or print is selected
@@ -323,8 +351,10 @@ def run():
                     nxt = True
                 if k == BUTTON_PRINT:
                     print("Print")
-                    savePhoto(originalFrame, overlayFrame)
+                    savePhoto(originalFrame, stylisedFrame)
                     nxt = True
+        if k == 113:
+            break
             
 
 
@@ -345,6 +375,19 @@ def main():
         run()
         print("not connected")
     """
+
+    cmd = ['xrandr']
+    cmd2 = ['grep', '*']
+    p = subprocess.Popen(cmd, stdout=subprocess.PIPE)
+    p2 = subprocess.Popen(cmd2, stdin=p.stdout, stdout=subprocess.PIPE)
+    p.stdout.close()
+    resolution_string, junk = p2.communicate()
+    resolution = resolution_string.split()[0]
+    #width, height = resolution.split('x')
+                
+            
+    print(resolution)
+
     CheckInternetConnection()
     checkUSBConnected()
 
