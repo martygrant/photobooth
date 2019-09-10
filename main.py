@@ -87,7 +87,7 @@ def writeTextCentered(frame, text, font, size, thickness, colour):
     writeText(frame, text, textX, textY, font, size, thickness, colour)
 
 def writeTextCenteredHorizontal(frame, text, y, font, size, thickness, colour):
-    textsize = cv2.getTextSize(text, font, 1, 2)[0]
+    textsize = cv2.getTextSize(text, font, size, thickness)[0]
 
     # get coords based on boundary
     textX = (frame.shape[1] - textsize[0]) / 2
