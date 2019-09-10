@@ -19,25 +19,25 @@ WINDOW_H = 900
 OUTPUT_PATH = str(os.getcwd()) + "/photos/"
 OUTPUT_STYLE = 0 # 0 = POLAROID, 1 = OVERLAY GRAPHIC
 
-COUNTDOWN_TIME = 3
+COUNTDOWN_TIME = 1
 
 CAPTURE_TEXT = "Press Button (b)"
 CAPTURE_X = (WINDOW_W / 2) - 50
 CAPTURE_Y = WINDOW_H / 2
-CAPTURE_SIZE = 1
-CAPTURE_THICKNESS = 1
+CAPTURE_SIZE = 2
+CAPTURE_THICKNESS = 2
 
 STARTOVER_TEXT = "Start Over (s)"
-STARTOVER_X = 100
-STARTOVER_Y = WINDOW_H - 60
-STARTOVER_SIZE = 1
-STARTOVER_THICKNESS = 1
+STARTOVER_X = 150
+STARTOVER_Y = WINDOW_H - 130
+STARTOVER_SIZE = 2
+STARTOVER_THICKNESS = 2
 
 PRINT_TEXT = "Print! (p)"
-PRINT_TEXT_X = WINDOW_W - 100
-PRINT_TEXT_Y = WINDOW_H - 60
-PRINT_TEXT_SIZE = 1
-PRINT_TEXT_THICKNESS = 1
+PRINT_TEXT_X = WINDOW_W - 425
+PRINT_TEXT_Y = WINDOW_H - 130
+PRINT_TEXT_SIZE = 2
+PRINT_TEXT_THICKNESS = 2
 
 BUTTON_CAPTURE = 98
 BUTTON_STARTOVER = 115
@@ -78,7 +78,7 @@ FONT_ITALIC = cv2.FONT_HERSHEY_SCRIPT_COMPLEX
 
 
 def writeTextCentered(frame, text, font, size, thickness, colour):
-    textsize = cv2.getTextSize(text, font, 1, 2)[0]
+    textsize = cv2.getTextSize(text, font, size, thickness)[0]
 
     # get coords based on boundary
     textX = (frame.shape[1] - textsize[0]) / 2
