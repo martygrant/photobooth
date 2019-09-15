@@ -12,6 +12,7 @@ import socket
 import picamera.array
 import picamera
 import subprocess
+import io
 
 WINDOW_W = 1440
 WINDOW_H = 900
@@ -19,7 +20,7 @@ WINDOW_H = 900
 OUTPUT_PATH = str(os.getcwd()) + "/photos/"
 OUTPUT_STYLE = 0 # 0 = POLAROID, 1 = OVERLAY GRAPHIC
 
-COUNTDOWN_TIME = 1
+COUNTDOWN_TIME = 6
 
 CAPTURE_TEXT = "Press Button (b)"
 CAPTURE_X = (WINDOW_W / 2) - 50
@@ -46,23 +47,20 @@ BUTTON_PRINT = 112
 COLOUR_WHITE = (255, 255, 255)
 COLOUR_BLACK = (0, 0, 0)
 
+"""
+resw = 640
+resh = 480
 
-resw = 1920
-resh = 1080
-
-##camera = cv2.VideoCapture(0)
-##camera.set(cv2.CAP_PROP_FRAME_WIDTH, 512)
-##camera.set(cv2.CAP_PROP_FRAME_HEIGHT, 512)
 camera = picamera.PiCamera()#sensor_mode=2)
 camera.resolution = (resw,resh)
-camera.framerate = 24
+camera.framerate = 30
 camera.brightness = 60
 rawCapture = picamera.array.PiRGBArray(camera, size=(resw,resh))
 time.sleep(1)
-
+"""
 
 window = cv2.namedWindow("Photobooth", cv2.WINDOW_NORMAL)
-cv2.setWindowProperty('Photobooth', cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
+#cv2.setWindowProperty('Photobooth', cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
 #cv2.moveWindow("Photobooth", 0, 900)
 
 FONT_NORMAL = cv2.FONT_HERSHEY_SIMPLEX
@@ -101,19 +99,66 @@ def createFrameBlack():
     return np.zeros((WINDOW_H, WINDOW_W, 3), np.uint8)
 
 
+class PiCam:
+    def __init__(self, resolution=(640,480), framerate=30):
+        self.camera = picamera.PiCamera()
+        self.camera.resolution = resolution
+        self.camera.framerate = framerate
+        self.camera.brightness = 60
+        self.rawCapture = picamera.array.PiRGBArray(self.camera, size=resolution)
+        self.stream = self.camera.capture_continuous(self.rawCapture, format="bgr", use_video_port=True)
+
+        self.frame = None
+        self.stopped = False
+
+    def start(self):
+        threading.Thread(target=self.update, args=()).start()
+        return self
+
+    def update(self):
+        for f in self.stream:
+            self.frame = f.array
+            self.rawCapture.truncate(0)
+            self.rawCapture.seek(0)
+
+            if self.stopped:
+                self.stream.close()
+                self.rawCapture.close()
+                self.camera.close()
+                return
+
+    def read(self):
+        return self.frame
+
+    def stop(self):
+        self.stopped = True
+        
+
+
 
 def countdown(countdown):
     oldtime = time.time()
+    toggle = False
+
+    vs = PiCam().start()
+    time.sleep(0.5)
+
     while True:
         currenttime = time.time()
-        print(dir(camera))
+        #print(dir(camera))
+
+
+        img = vs.read()
 
         # get image from camera
-        camera.capture(rawCapture, 'bgr', use_video_port=True)
-        img = rawCapture.array
+        #camera.capture(rawCapture, 'bgr', use_video_port=False)
+        #img = rawCapture.array
+
+        #camera.capture(rawCapture, format='bgr')
+        #img = rawCapture.array
 
         # make preview fit window
-        img = cv2.resize(img, (1440, 900))
+        #img = cv2.resize(img, (1440, 900))
 
         # write countdown on image
         writeTextCentered(img, str(countdown), FONT_NORMAL, 4, 2, COLOUR_WHITE)
@@ -123,8 +168,8 @@ def countdown(countdown):
         cv2.waitKey(1)
 
         # reset camera
-        rawCapture.seek(0)
-        rawCapture.truncate(0)
+        #rawCapture.seek(0)
+        #rawCapture.truncate(0)
         
         if currenttime - oldtime >= 1:
             countdown -= 1
@@ -132,20 +177,23 @@ def countdown(countdown):
             print(countdown)
 
         if countdown < 1:
-            #ret, frame = camera.read()
-            #frame = cv2.resize(frame, (0,0), fx=0.5, fy=0.5)
-            #frame = cv2.resize(frame, (512, 512))
-            # todo try changing video port part
-            camera.capture(rawCapture, 'bgr', use_video_port=False)
+            vs.stop()
 
-            img = rawCapture.array
-            #img = cv2.resize(img, (0,0), fx=0.5, fy=0.5)
-            #img = cv2.resize(img, (1440, 900))
-            
-            rawCapture.seek(0)
-            rawCapture.truncate(0) # check this for colour diff after first image
-            return img
-            
+            resw = 2592
+            resh = 1944
+
+            cam = picamera.PiCamera()#sensor_mode=2)
+            cam.resolution = (resw,resh)
+            cam.framerate = 15
+            cam.brightness = 60
+            raw = picamera.array.PiRGBArray(cam, size=(resw,resh))
+            time.sleep(0.5)
+
+            cam.capture(raw, format='bgr')
+            img = raw.array
+                      
+            return img            
+
 
 
 def overlay_transparent(background, overlay, x, y):
@@ -296,6 +344,7 @@ def savePhoto(original, stylised):
     old = time.time()
     
     # Save photo to remote backup
+    # todo check if drive object exists
     uploadThreadOne = threading.Thread(target=backupToGoogleDrive, args=(filenameOriginal, original))
     uploadThreadOne.start()
     uploadThreadTwo = threading.Thread(target=backupToGoogleDrive, args=(filenameStylised, stylised))
@@ -337,7 +386,7 @@ def run():
             # DISPLAY frame (for screen)
             dispframe = deepcopy(originalFrame)            
             # add black bar at bottom for button text
-            dispframe = cv2.resize(dispframe, (1440, 900))
+            #dispframe = cv2.resize(dispframe, (1440, 900))
             addOutputOptionsToDisplayFrame(dispframe)
             
             cv2.imshow('Photobooth', dispframe)
@@ -400,5 +449,5 @@ if __name__ == "__main__":
 
 cv2.waitKey(0)
 
-camera.release()
+#camera.release()
 cv2.destroyAllWindows()
