@@ -11,8 +11,6 @@ from pydrive.drive import GoogleDrive
 import socket
 import picamera.array
 import picamera
-import subprocess
-import io
 
 WINDOW_W = 1440
 WINDOW_H = 900
@@ -47,20 +45,20 @@ BUTTON_PRINT = 112
 COLOUR_WHITE = (255, 255, 255)
 COLOUR_BLACK = (0, 0, 0)
 
-"""
-resw = 640
-resh = 480
+
+resw = 2592
+resh = 1944
 
 camera = picamera.PiCamera()#sensor_mode=2)
 camera.resolution = (resw,resh)
-camera.framerate = 30
+camera.framerate = 15
 camera.brightness = 60
 rawCapture = picamera.array.PiRGBArray(camera, size=(resw,resh))
 time.sleep(1)
-"""
+
 
 window = cv2.namedWindow("Photobooth", cv2.WINDOW_NORMAL)
-#cv2.setWindowProperty('Photobooth', cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
+cv2.setWindowProperty('Photobooth', cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
 #cv2.moveWindow("Photobooth", 0, 900)
 
 FONT_NORMAL = cv2.FONT_HERSHEY_SIMPLEX
@@ -98,7 +96,7 @@ def writeText(frame, text, x, y, font, size, thickness, colour):
 def createFrameBlack():
     return np.zeros((WINDOW_H, WINDOW_W, 3), np.uint8)
 
-
+"""
 class PiCam:
     def __init__(self, resolution=(640,480), framerate=30):
         self.camera = picamera.PiCamera()
@@ -130,69 +128,55 @@ class PiCam:
     def read(self):
         return self.frame
 
+    def cap(self):
+        self.camera.capture(self.rawCapture, format='bgr')
+        return self.rawCapture.array
+
     def stop(self):
         self.stopped = True
-        
-
-
+"""        
 
 def countdown(countdown):
     oldtime = time.time()
-    toggle = False
-
-    vs = PiCam().start()
-    time.sleep(0.5)
+    
+    img = None
+    firstRun = True
 
     while True:
         currenttime = time.time()
         #print(dir(camera))
 
-
-        img = vs.read()
-
-        # get image from camera
-        #camera.capture(rawCapture, 'bgr', use_video_port=False)
-        #img = rawCapture.array
-
-        #camera.capture(rawCapture, format='bgr')
-        #img = rawCapture.array
-
-        # make preview fit window
-        #img = cv2.resize(img, (1440, 900))
-
-        # write countdown on image
-        writeTextCentered(img, str(countdown), FONT_NORMAL, 4, 2, COLOUR_WHITE)
-
-        # display image
-        cv2.imshow('Photobooth', img)
-        cv2.waitKey(1)
-
-        # reset camera
-        #rawCapture.seek(0)
-        #rawCapture.truncate(0)
-        
-        if currenttime - oldtime >= 1:
+        if currenttime - oldtime >= 1 or firstRun == True:
             countdown -= 1
             oldtime = time.time()
             print(countdown)
 
-        if countdown < 1:
-            vs.stop()
+            # get image from camera
+            camera.capture(rawCapture, 'bgr')#, use_video_port=False)
+            img = rawCapture.array
 
-            resw = 2592
-            resh = 1944
+            # make preview fit window
+            img = cv2.resize(img, (1440, 900))
 
-            cam = picamera.PiCamera()#sensor_mode=2)
-            cam.resolution = (resw,resh)
-            cam.framerate = 15
-            cam.brightness = 60
-            raw = picamera.array.PiRGBArray(cam, size=(resw,resh))
-            time.sleep(0.5)
+            # write countdown on image
+            writeTextCentered(img, str(countdown), FONT_NORMAL, 4, 2, COLOUR_WHITE)
 
-            cam.capture(raw, format='bgr')
-            img = raw.array
-                      
-            return img            
+            # display image
+            cv2.imshow('Photobooth', img)
+            cv2.waitKey(1)
+
+            # reset camera
+            rawCapture.seek(0)
+            rawCapture.truncate(0)
+
+            if firstRun == True:
+                firstRun = False
+
+        if countdown < 1:     
+            camera.capture(rawCapture, 'bgr', use_video_port=False)
+            rawCapture.seek(0)
+            rawCapture.truncate(0)
+            return rawCapture.array
 
 
 
@@ -249,7 +233,6 @@ def addOutputOptionsToDisplayFrame(frame):
     # write start over and print text
     writeText(frame, STARTOVER_TEXT, STARTOVER_X, STARTOVER_Y, FONT_NORMAL, STARTOVER_SIZE, STARTOVER_THICKNESS, COLOUR_WHITE)
     writeText(frame, PRINT_TEXT, PRINT_TEXT_X, PRINT_TEXT_Y, FONT_NORMAL, PRINT_TEXT_SIZE, PRINT_TEXT_THICKNESS, COLOUR_WHITE)
-
 
 def overlayGraphicFrame(frame):
     overlay = cv2.imread('overlay.png', cv2.IMREAD_UNCHANGED)
@@ -386,7 +369,7 @@ def run():
             # DISPLAY frame (for screen)
             dispframe = deepcopy(originalFrame)            
             # add black bar at bottom for button text
-            #dispframe = cv2.resize(dispframe, (1440, 900))
+            dispframe = cv2.resize(dispframe, (1440, 900))
             addOutputOptionsToDisplayFrame(dispframe)
             
             cv2.imshow('Photobooth', dispframe)
@@ -425,17 +408,6 @@ def main():
         print("not connected")
     """
 
-    cmd = ['xrandr']
-    cmd2 = ['grep', '*']
-    p = subprocess.Popen(cmd, stdout=subprocess.PIPE)
-    p2 = subprocess.Popen(cmd2, stdin=p.stdout, stdout=subprocess.PIPE)
-    p.stdout.close()
-    resolution_string, junk = p2.communicate()
-    resolution = resolution_string.split()[0]
-    #width, height = resolution.split('x')
-                
-            
-    print(resolution)
 
     CheckInternetConnection()
     checkUSBConnected()
