@@ -53,6 +53,7 @@ camera = picamera.PiCamera()#sensor_mode=2)
 camera.resolution = (resw,resh)
 camera.framerate = 15
 camera.brightness = 60
+camera.rotation = 180
 rawCapture = picamera.array.PiRGBArray(camera, size=(resw,resh))
 time.sleep(1)
 
@@ -408,7 +409,7 @@ def main():
         print("not connected")
     """
 
-
+    createExportDirectory(OUTPUT_PATH)
     CheckInternetConnection()
     checkUSBConnected()
 
