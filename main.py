@@ -11,6 +11,7 @@ from pydrive.drive import GoogleDrive
 import socket
 import picamera.array
 import picamera
+from pushover import *
 
 WINDOW_W = 1440
 WINDOW_H = 900
@@ -347,6 +348,13 @@ def savePhoto(original, stylised):
     saveToUSB(filenameStylised, stylised)
 
 
+def get_key(filename):
+    with open(filename) as f:
+        key = f.read().strip()
+    return key
+
+
+
 def run():
     while (True):
         print("Ready...")
@@ -409,11 +417,18 @@ def main():
         print("not connected")
     """
 
-    createExportDirectory(OUTPUT_PATH)
+    """createExportDirectory(OUTPUT_PATH)
     CheckInternetConnection()
     checkUSBConnected()
 
-    run()
+    run()"""
+    
+    push_user = get_key(os.path.join(os.path.dirname(__file__), 'pushuser.key'))
+    push_api = get_key(os.path.join(os.path.dirname(__file__), 'pushapi.key'))
+    
+    pusher = PushoverSender(push_user, push_api)
+    pusher.send("from rpi")
+
 
 if __name__ == "__main__":
     main()
