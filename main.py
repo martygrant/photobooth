@@ -23,13 +23,19 @@ WINDOW_H = 900
 OUTPUT_PATH = str(os.getcwd()) + "/photos/"
 OUTPUT_STYLE = 0 # 0 = POLAROID, 1 = OVERLAY GRAPHIC
 
-COUNTDOWN_TIME = 10
+COUNTDOWN_TIME = 3
+COUNTDOWN_SIZE = 6
+COUNTDOWN_THICKNESS = 5
+COUNTDOWN_OVERLAY_X = WINDOW_W / 2
+COUNTDOWN_OVERLAY_Y = (WINDOW_H / 2)
+COUNTDOWN_OVERLAY_W = COUNTDOWN_OVERLAY_X + 200
+COUNTDOWN_OVERLAY_H = COUNTDOWN_OVERLAY_Y + 200
 
 CAPTURE_TEXT = "Press the middle button"
 CAPTURE_TEXT2 = "below to take a photo!"
 CAPTURE_TEXT3 = "You have " + str(COUNTDOWN_TIME) + " seconds to pose!"
 CAPTURE_X = (WINDOW_W / 2) - 50
-CAPTURE_Y = WINDOW_H / 2
+CAPTURE_Y = (WINDOW_H / 2) 
 CAPTURE_SIZE = 3.5
 CAPTURE_THICKNESS = 3
 
@@ -152,7 +158,18 @@ def countdown(countdown):
             img = cv2.resize(img, (1440, 900))
 
             # write countdown on image
-            writeTextCentered(img, str(countdown), FONT_NORMAL, 4, 2, COLOUR_WHITE)
+            overlay = img.copy()
+            if countdown != 0:
+                cv2.rectangle(overlay, (620, 550), (820, 750), COLOUR_BLACK, -1)
+                alpha = 0.3
+                cv2.addWeighted(overlay, alpha, img, 1 - alpha, 0, img)
+                writeTextCenteredHorizontal(img, str(countdown), 710, FONT_NORMAL, COUNTDOWN_SIZE, COUNTDOWN_THICKNESS, COLOUR_WHITE)
+            else:
+                cv2.rectangle(overlay, (320, 550), (1120, 750), COLOUR_BLACK, -1)
+                alpha = 0.3
+                cv2.addWeighted(overlay, alpha, img, 1 - alpha, 0, img)
+                writeTextCenteredHorizontal(img, "Cheese!", 710, FONT_NORMAL, COUNTDOWN_SIZE, COUNTDOWN_THICKNESS+1, COLOUR_WHITE)
+
 
             # display image
             cv2.imshow('Photobooth', img)
