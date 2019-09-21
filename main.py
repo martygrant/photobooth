@@ -39,17 +39,21 @@ CAPTURE_Y = (WINDOW_H / 2)
 CAPTURE_SIZE = 3.5
 CAPTURE_THICKNESS = 3
 
-STARTOVER_TEXT = "Start Over (s)"
-STARTOVER_X = 150
+STARTOVER_TEXT = "Start Over"
+STARTOVER_X = 50
 STARTOVER_Y = WINDOW_H - 130
-STARTOVER_SIZE = 2
-STARTOVER_THICKNESS = 2
+STARTOVER_SIZE = 3
+STARTOVER_THICKNESS = 3
 
-PRINT_TEXT = "Print! (p)"
-PRINT_TEXT_X = WINDOW_W - 425
+PRINT_TEXT = "Print Photo!"
+PRINT_TEXT_X = WINDOW_W - 600
 PRINT_TEXT_Y = WINDOW_H - 130
-PRINT_TEXT_SIZE = 2
-PRINT_TEXT_THICKNESS = 2
+PRINT_TEXT_SIZE = 3
+PRINT_TEXT_THICKNESS = 3
+
+arrow = cv2.imread('arrow.png', cv2.IMREAD_UNCHANGED)
+arrow = cv2.resize(arrow, None, fx=0.4, fy=0.4)
+
 
 BUTTON_CAPTURE = 98
 BUTTON_STARTOVER = 115
@@ -231,10 +235,10 @@ writeTextCenteredHorizontal(pressButtonFrame, CAPTURE_TEXT3, CAPTURE_Y + 300, FO
 
 
 def addOutputOptionsToDisplayFrame(frame):
-    x = 0 + 50
-    y = WINDOW_H - 200
-    w = WINDOW_W - 100
-    h = 100
+    x = 0
+    y = WINDOW_H - 230
+    w = WINDOW_W
+    h = 300
 
     overlay = frame.copy()
     
@@ -245,6 +249,10 @@ def addOutputOptionsToDisplayFrame(frame):
     # write start over and print text
     writeText(frame, STARTOVER_TEXT, STARTOVER_X, STARTOVER_Y, FONT_NORMAL, STARTOVER_SIZE, STARTOVER_THICKNESS, COLOUR_WHITE)
     writeText(frame, PRINT_TEXT, PRINT_TEXT_X, PRINT_TEXT_Y, FONT_NORMAL, PRINT_TEXT_SIZE, PRINT_TEXT_THICKNESS, COLOUR_WHITE)
+
+    overlay_transparent(frame, arrow, STARTOVER_X + 150, STARTOVER_Y + 20)
+    overlay_transparent(frame, arrow, PRINT_TEXT_X + 290, STARTOVER_Y + 20)
+
 
 def overlayGraphicFrame(frame):
     overlay = cv2.imread('overlay.png', cv2.IMREAD_UNCHANGED)
