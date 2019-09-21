@@ -15,6 +15,7 @@ from pushover import *
 from gpiozero import Button
 from signal import pause
 from gpiozero import LED
+from time import sleep
 
 WINDOW_W = 1440
 WINDOW_H = 900
@@ -22,13 +23,15 @@ WINDOW_H = 900
 OUTPUT_PATH = str(os.getcwd()) + "/photos/"
 OUTPUT_STYLE = 0 # 0 = POLAROID, 1 = OVERLAY GRAPHIC
 
-COUNTDOWN_TIME = 6
+COUNTDOWN_TIME = 10
 
-CAPTURE_TEXT = "Press Button (b)"
+CAPTURE_TEXT = "Press the middle button"
+CAPTURE_TEXT2 = "below to take a photo!"
+CAPTURE_TEXT3 = "You have " + str(COUNTDOWN_TIME) + " seconds to pose!"
 CAPTURE_X = (WINDOW_W / 2) - 50
 CAPTURE_Y = WINDOW_H / 2
-CAPTURE_SIZE = 2
-CAPTURE_THICKNESS = 2
+CAPTURE_SIZE = 3.5
+CAPTURE_THICKNESS = 3
 
 STARTOVER_TEXT = "Start Over (s)"
 STARTOVER_X = 150
@@ -124,46 +127,7 @@ def writeText(frame, text, x, y, font, size, thickness, colour):
 
 def createFrameBlack():
     return np.zeros((WINDOW_H, WINDOW_W, 3), np.uint8)
-
-"""
-class PiCam:
-    def __init__(self, resolution=(640,480), framerate=30):
-        self.camera = picamera.PiCamera()
-        self.camera.resolution = resolution
-        self.camera.framerate = framerate
-        self.camera.brightness = 60
-        self.rawCapture = picamera.array.PiRGBArray(self.camera, size=resolution)
-        self.stream = self.camera.capture_continuous(self.rawCapture, format="bgr", use_video_port=True)
-
-        self.frame = None
-        self.stopped = False
-
-    def start(self):
-        threading.Thread(target=self.update, args=()).start()
-        return self
-
-    def update(self):
-        for f in self.stream:
-            self.frame = f.array
-            self.rawCapture.truncate(0)
-            self.rawCapture.seek(0)
-
-            if self.stopped:
-                self.stream.close()
-                self.rawCapture.close()
-                self.camera.close()
-                return
-
-    def read(self):
-        return self.frame
-
-    def cap(self):
-        self.camera.capture(self.rawCapture, format='bgr')
-        return self.rawCapture.array
-
-    def stop(self):
-        self.stopped = True
-"""        
+    
 
 def countdown(countdown):
     oldtime = time.time()
@@ -244,7 +208,9 @@ def overlay_transparent(background, overlay, x, y):
 
 
 pressButtonFrame = np.zeros((WINDOW_H, WINDOW_W, 3), np.uint8)
-writeTextCentered(pressButtonFrame, CAPTURE_TEXT, FONT_NORMAL, CAPTURE_SIZE, CAPTURE_THICKNESS, COLOUR_WHITE)
+writeTextCenteredHorizontal(pressButtonFrame, CAPTURE_TEXT, CAPTURE_Y - 50, FONT_NORMAL, CAPTURE_SIZE, CAPTURE_THICKNESS, COLOUR_WHITE)
+writeTextCenteredHorizontal(pressButtonFrame, CAPTURE_TEXT2, CAPTURE_Y + 70, FONT_NORMAL, CAPTURE_SIZE, CAPTURE_THICKNESS, COLOUR_WHITE)
+writeTextCenteredHorizontal(pressButtonFrame, CAPTURE_TEXT3, CAPTURE_Y + 300, FONT_NORMAL, 2.5, CAPTURE_THICKNESS, COLOUR_WHITE)
 
 
 def addOutputOptionsToDisplayFrame(frame):
@@ -384,7 +350,7 @@ def get_key(filename):
 
 def run():
     while (True):
-        print("Ready...")
+        print("Ready...")        
 
         middleLight.on()
         leftLight.off()
@@ -432,8 +398,7 @@ def run():
                     nxt = True
         if k == 113:
             break
-            
-            
+                            
 
 def main():
     print("Startup")
