@@ -12,6 +12,8 @@ import socket
 import picamera.array
 import picamera
 from pushover import *
+from gpiozero import Button
+from signal import pause
 
 WINDOW_W = 1440
 WINDOW_H = 900
@@ -47,8 +49,8 @@ COLOUR_WHITE = (255, 255, 255)
 COLOUR_BLACK = (0, 0, 0)
 
 
-resw = 2592
-resh = 1944
+resw = 3280
+resh = 2464
 
 camera = picamera.PiCamera()#sensor_mode=2)
 camera.resolution = (resw,resh)
@@ -73,7 +75,25 @@ FONT_ITALIC = cv2.FONT_HERSHEY_SCRIPT_COMPLEX
 #drive = GoogleDrive(gauth)
 
 
+"""
+def leftButtonAction():
+    test = 1
+    
+def middleButtonAction():
+    originalFrame = countdown(COUNTDOWN_TIME)
+    
+def rightButtonAction():
+    test = 1
+"""
 
+leftButton = Button(4)
+#leftButton.when_pressed = leftButtonAction
+
+middleButton = Button(22)
+#middleButton.when_pressed = middleButtonAction
+
+rightButton = Button(17)
+#rightButton.when_pressed = rightButtonAction
 
 def writeTextCentered(frame, text, font, size, thickness, colour):
     textsize = cv2.getTextSize(text, font, size, thickness)[0]
@@ -362,8 +382,8 @@ def run():
         # show start message
         cv2.imshow('Photobooth', pressButtonFrame)
         # wait for button press
-        k = cv2.waitKey(0)
-        if k == BUTTON_CAPTURE:
+        k = cv2.waitKey(1)
+        if k == BUTTON_CAPTURE or middleButton.is_pressed:
             print("Capture")
             # ORIGINAL frame (from camera)
             originalFrame = countdown(COUNTDOWN_TIME)
@@ -386,18 +406,18 @@ def run():
             # wait until start over or print is selected
             nxt = False
             while not nxt:
-                k = cv2.waitKey(0)
-                if k == BUTTON_STARTOVER:
+                k = cv2.waitKey(1)
+                if k == BUTTON_STARTOVER or leftButton.is_pressed:
                     print("Startover")
                     nxt = True
-                if k == BUTTON_PRINT:
+                if k == BUTTON_PRINT or rightButton.is_pressed:
                     print("Print")
                     savePhoto(originalFrame, stylisedFrame)
                     nxt = True
         if k == 113:
             break
             
-
+            
 
 def main():
     print("Startup")
@@ -417,17 +437,19 @@ def main():
         print("not connected")
     """
 
-    """createExportDirectory(OUTPUT_PATH)
+    createExportDirectory(OUTPUT_PATH)
     CheckInternetConnection()
     checkUSBConnected()
 
-    run()"""
-    
+    run()
+    """
     push_user = get_key(os.path.join(os.path.dirname(__file__), 'pushuser.key'))
     push_api = get_key(os.path.join(os.path.dirname(__file__), 'pushapi.key'))
     
     pusher = PushoverSender(push_user, push_api)
-    pusher.send("from rpi")
+    pusher.send("from rpi")"""
+    
+    camera.close()
 
 
 if __name__ == "__main__":
