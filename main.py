@@ -14,6 +14,7 @@ import picamera
 from pushover import *
 from gpiozero import Button
 from signal import pause
+from gpiozero import LED
 
 WINDOW_W = 1440
 WINDOW_H = 900
@@ -94,6 +95,12 @@ middleButton = Button(22)
 
 rightButton = Button(17)
 #rightButton.when_pressed = rightButtonAction
+
+
+
+leftLight = LED(21)
+middleLight = LED(6)
+rightLight = LED(19)
 
 def writeTextCentered(frame, text, font, size, thickness, colour):
     textsize = cv2.getTextSize(text, font, size, thickness)[0]
@@ -379,13 +386,18 @@ def run():
     while (True):
         print("Ready...")
 
+        middleLight.on()
+        leftLight.off()
+        rightLight.off()
+
         # show start message
         cv2.imshow('Photobooth', pressButtonFrame)
         # wait for button press
         k = cv2.waitKey(1)
-        if k == BUTTON_CAPTURE or middleButton.is_pressed:
+        if k == BUTTON_CAPTURE or middleButton.is_pressed:        
             print("Capture")
             # ORIGINAL frame (from camera)
+            middleLight.off()
             originalFrame = countdown(COUNTDOWN_TIME)
 
             # STYLISED frame (for printing)
@@ -407,11 +419,15 @@ def run():
             nxt = False
             while not nxt:
                 k = cv2.waitKey(1)
+                leftLight.on()
+                rightLight.on()
+                
                 if k == BUTTON_STARTOVER or leftButton.is_pressed:
-                    print("Startover")
+                    print("Startover")                    
                     nxt = True
                 if k == BUTTON_PRINT or rightButton.is_pressed:
                     print("Print")
+                    
                     savePhoto(originalFrame, stylisedFrame)
                     nxt = True
         if k == 113:
@@ -450,6 +466,10 @@ def main():
     pusher.send("from rpi")"""
     
     camera.close()
+    
+    middleLight.on()
+    leftLight.off()
+    rightLight.off()
 
 
 if __name__ == "__main__":
