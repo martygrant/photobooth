@@ -9,7 +9,7 @@ printers = conn.getPrinters()
 canonPrinter = list(printers.keys())[0] # 0 for canon, 1 for pdf
 print(canonPrinter)
 
-
+"""
 #job = conn.printFile(canonPrinter, "arrow.png", "", {'fit-to-page':'True'})
 job = conn.printTestPage(canonPrinter)
 
@@ -33,17 +33,11 @@ while True:
 #file = "//home/pi/Desktop/photobooth/photos/photobooth-2019-09-19_23_16_00_original.jpeg"
 #file = "glasgow.jpeg"
 
-img = cv2.imread("//home/pi/Desktop/photobooth/photos/photobooth-2019-09-19_23_16_00_original.jpeg")
+img = cv2.imread("//home/pi/Desktop/photobooth/photos/photobooth-2019-09-22_10_26_19_original.jpeg")
 
 img = cv2.resize(img, None, fx=0.12, fy=0.12)
 
 cv2.imwrite("scaled.jpg", img)
 
-conn.printFile(canonPrinter, "scaled.jpg", "", {'fit-to-page':'True'})
-"""
-"""
-for printer in printers:
-    print(printer, printers[printer]["device-uri"])
-    print(dir(printer))
-    """
-    #print(printer.keys()[0])
+conn.printFile(canonPrinter, "scaled.jpg", "", {'print-media':'A6'})
+

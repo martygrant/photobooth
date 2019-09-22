@@ -276,7 +276,7 @@ def overlayPolaroidFrame(frame):
     left = int(0.05 * frame.shape[1])  # shape[1] = cols
     right = left
     newf = cv2.copyMakeBorder(frame, top, bottom, left, right, cv2.BORDER_CONSTANT, None, COLOUR_WHITE)
-    writeTextCenteredHorizontal(newf, "Rebecca & Harry - Mar Hall - 2019", newf.shape[0] - 30, FONT_ITALIC, STARTOVER_SIZE, STARTOVER_THICKNESS, COLOUR_BLACK)
+    writeTextCenteredHorizontal(newf, "Rebecca & Harry   Mar Hall   22/09/2019", newf.shape[0] - 30, FONT_ITALIC, STARTOVER_SIZE, STARTOVER_THICKNESS, COLOUR_BLACK)
     return newf
 
 
@@ -378,7 +378,11 @@ def savePhoto(original, stylised):
 
 def printImage(image):
     screen = createFrameBlack()
-    
+        
+    image = cv2.resize(image, None, fx=0.12, fy=0.12)
+    cv2.imwrite("print/scaled_print.jpg", image)
+
+    #job = conn.printFile(canonPrinter, "//home/pi/Desktop/photobooth/print/scaled_print.jpg", "", {'fit-to-page':'True'})
     job = conn.printTestPage(canonPrinter)
     print("print job " + str(job))
     
