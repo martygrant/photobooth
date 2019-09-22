@@ -17,6 +17,7 @@ from signal import pause
 from gpiozero import LED
 from time import sleep
 from PIL import ImageFont, ImageDraw, Image
+import cups
 
 WINDOW_W = 1440
 WINDOW_H = 900
@@ -90,6 +91,12 @@ roboto = ImageFont.truetype("Roboto-Regular.ttf", 148)
 #gauth.LocalWebserverAuth()
 #drive = GoogleDrive(gauth)
 
+
+
+# printing
+conn = cups.Connection()
+printers = conn.getPrinters()
+canonPrinter = list(printers.keys())[0] # 0 for canon, 1 for pdf
 
 """
 def leftButtonAction():
@@ -367,37 +374,41 @@ def savePhoto(original, stylised):
 
 
 def printImage(image):
-    x = 0
-    y = WINDOW_H - 230
-    w = WINDOW_W
-    h = 300
-
     screen = createFrameBlack()
-    prog = 90
+    
+    job = conn.printTestPage(canonPrinter)
+    print("print job " + str(job))
+    
     while True:
-        prog += 1
-        writeTextCenteredHorizontal(screen, "Printing your photo...", 900/2 - 100, FONT_NORMAL, 4, 4, COLOUR_WHITE)    
-        progStr = "{0}%".format(str(prog))
-        #writeTextCenteredHorizontal(screen, progStr, 900/2 + 200, FONT_NORMAL, 5, 5, COLOUR_WHITE)
-        
-        
-        cv2_im_rgb = cv2.cvtColor(screen, cv2.COLOR_BGR2RGB)
-        pil_im = Image.fromarray(cv2_im_rgb)
-        draw = ImageDraw.Draw(pil_im)
-        draw.text((1400/2-100, 900/2), progStr, font=roboto)
-        screen = cv2.cvtColor(np.array(pil_im), cv2.COLOR_RGB2BGR)
-        
-        cv2.imshow('Photobooth', screen)
-        cv2.waitKey(1000)
-        screen = createFrameBlack()
-        
-        if prog == 99:
+        if conn.getJobs().get(job, None) is not None:
+            jobProgress = conn.getJobAttributes(job)['job-media-progress']
+            print(jobProgress)
+            time.sleep(2)
+            
+            writeTextCenteredHorizontal(screen, "Printing your photo...", 900/2 - 100, FONT_NORMAL, 4, 4, COLOUR_WHITE)    
+            progStr = "{0}%".format(str(jobProgress))
+
+            cv2_im_rgb = cv2.cvtColor(screen, cv2.COLOR_BGR2RGB)
+            pil_im = Image.fromarray(cv2_im_rgb)
+            draw = ImageDraw.Draw(pil_im)
+            draw.text((1400/2-100, 900/2), progStr, font=roboto)
+            screen = cv2.cvtColor(np.array(pil_im), cv2.COLOR_RGB2BGR)
+            
+            cv2.imshow('Photobooth', screen)
+            cv2.waitKey(1000)
+            screen = createFrameBlack()
+                        
+        else:
+            # should wait for 5 secs or so
+            # TODO IN MORNING MODIFY THE LAST SLEEP HERE
+            print("done printing, finishing!")
+            
             cv2.waitKey(5000)
             writeTextCenteredHorizontal(screen, "Collect your photo below!", 900/2, FONT_NORMAL, 3.5, 4, COLOUR_WHITE)
             cv2.imshow('Photobooth', screen)
             cv2.waitKey(4000)
             break
-
+        
 
 def get_key(filename):
     with open(filename) as f:
