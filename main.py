@@ -16,6 +16,7 @@ from gpiozero import Button
 from signal import pause
 from gpiozero import LED
 from time import sleep
+from PIL import ImageFont, ImageDraw, Image
 
 WINDOW_W = 1440
 WINDOW_H = 900
@@ -81,6 +82,7 @@ cv2.setWindowProperty('Photobooth', cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCRE
 
 FONT_NORMAL = cv2.FONT_HERSHEY_SIMPLEX
 FONT_ITALIC = cv2.FONT_HERSHEY_SCRIPT_COMPLEX
+roboto = ImageFont.truetype("Roboto-Regular.ttf", 148)
 
 
 # GOOGLE DRIVE
@@ -343,7 +345,6 @@ def savePhoto(original, stylised):
     cv2.imwrite(OUTPUT_PATH + filenameStylised, stylised)
     print("SUCCESS: Saved locally:", filenameStylised)
 
-
     old = time.time()
     
     # Save photo to remote backup
@@ -360,10 +361,42 @@ def savePhoto(original, stylised):
     now = time.time()
     print("upload took", now - old)
         
-
     # Save photo to external usb drive
     saveToUSB(filenameOriginal, original)
     saveToUSB(filenameStylised, stylised)
+
+
+def printImage(image):
+    x = 0
+    y = WINDOW_H - 230
+    w = WINDOW_W
+    h = 300
+
+    screen = createFrameBlack()
+    prog = 90
+    while True:
+        prog += 1
+        writeTextCenteredHorizontal(screen, "Printing your photo...", 900/2 - 100, FONT_NORMAL, 4, 4, COLOUR_WHITE)    
+        progStr = "{0}%".format(str(prog))
+        #writeTextCenteredHorizontal(screen, progStr, 900/2 + 200, FONT_NORMAL, 5, 5, COLOUR_WHITE)
+        
+        
+        cv2_im_rgb = cv2.cvtColor(screen, cv2.COLOR_BGR2RGB)
+        pil_im = Image.fromarray(cv2_im_rgb)
+        draw = ImageDraw.Draw(pil_im)
+        draw.text((1400/2-100, 900/2), progStr, font=roboto)
+        screen = cv2.cvtColor(np.array(pil_im), cv2.COLOR_RGB2BGR)
+        
+        cv2.imshow('Photobooth', screen)
+        cv2.waitKey(1000)
+        screen = createFrameBlack()
+        
+        if prog == 99:
+            cv2.waitKey(5000)
+            writeTextCenteredHorizontal(screen, "Collect your photo below!", 900/2, FONT_NORMAL, 3.5, 4, COLOUR_WHITE)
+            cv2.imshow('Photobooth', screen)
+            cv2.waitKey(4000)
+            break
 
 
 def get_key(filename):
@@ -384,6 +417,9 @@ def run():
         # show start message
         cv2.imshow('Photobooth', pressButtonFrame)
         # wait for button press
+        
+        # TODOOOO IN MORNING TRY DOING WAITKEY 1000+ TO BLINK LIGHT?
+        
         k = cv2.waitKey(1)
         if k == BUTTON_CAPTURE or middleButton.is_pressed:        
             print("Capture")
@@ -417,9 +453,9 @@ def run():
                     print("Startover")                    
                     nxt = True
                 if k == BUTTON_PRINT or rightButton.is_pressed:
-                    print("Print")
-                    
+                    print("Print")                    
                     savePhoto(originalFrame, stylisedFrame)
+                    printImage(originalFrame)
                     nxt = True
         if k == 113:
             break
