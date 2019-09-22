@@ -71,7 +71,7 @@ resh = 2464
 camera = picamera.PiCamera()#sensor_mode=2)
 camera.resolution = (resw,resh)
 camera.framerate = 15
-camera.brightness = 60
+#camera.brightness = 60
 camera.rotation = 180
 rawCapture = picamera.array.PiRGBArray(camera, size=(resw,resh))
 time.sleep(1)
@@ -415,11 +415,14 @@ def get_key(filename):
         key = f.read().strip()
     return key
 
-
+from random import randrange
 
 def run():
+    old = time.time()
     while (True):
-        print("Ready...")        
+        #print("Ready...")
+
+        now = time.time()
 
         middleLight.on()
         leftLight.off()
@@ -430,6 +433,11 @@ def run():
         # wait for button press
         
         # TODOOOO IN MORNING TRY DOING WAITKEY 1000+ TO BLINK LIGHT?
+        if now - old >= 1:
+            print("1 sec and", randrange(10))
+            middleLight.off()
+            old = time.time()
+        
         
         k = cv2.waitKey(1)
         if k == BUTTON_CAPTURE or middleButton.is_pressed:        
@@ -473,7 +481,6 @@ def run():
                             
 
 def main():
-    print("Startup")
     # Check if we have an internet connection
     """if CheckInternetConnection() == True:
         
