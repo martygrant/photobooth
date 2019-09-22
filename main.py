@@ -25,7 +25,7 @@ WINDOW_H = 900
 OUTPUT_PATH = str(os.getcwd()) + "/photos/"
 OUTPUT_STYLE = 0 # 0 = POLAROID, 1 = OVERLAY GRAPHIC
 
-COUNTDOWN_TIME = 3
+COUNTDOWN_TIME = 10
 COUNTDOWN_SIZE = 6
 COUNTDOWN_THICKNESS = 5
 COUNTDOWN_OVERLAY_X = WINDOW_W / 2
@@ -71,7 +71,10 @@ resh = 2464
 camera = picamera.PiCamera()#sensor_mode=2)
 camera.resolution = (resw,resh)
 camera.framerate = 15
-#camera.brightness = 60
+camera.brightness = 55
+#camera.contrast = 8
+#camera.video_stabilization = True
+#camera.exposure_mode = 'auto'
 camera.rotation = 180
 rawCapture = picamera.array.PiRGBArray(camera, size=(resw,resh))
 time.sleep(1)
