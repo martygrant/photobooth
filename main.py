@@ -47,7 +47,7 @@ STARTOVER_Y = WINDOW_H - 130
 STARTOVER_SIZE = 3
 STARTOVER_THICKNESS = 3
 
-PRINT_TEXT = "Print Photo!"
+PRINT_TEXT = "Save Photo!"
 PRINT_TEXT_X = WINDOW_W - 600
 PRINT_TEXT_Y = WINDOW_H - 130
 PRINT_TEXT_SIZE = 3
@@ -123,9 +123,10 @@ rightButton = Button(17)
 
 
 
-leftLight = LED(21)
+leftLight = LED(19)
 middleLight = LED(6)
-rightLight = LED(19)
+rightLight = LED(21)
+
 
 def writeTextCentered(frame, text, font, size, thickness, colour):
     textsize = cv2.getTextSize(text, font, size, thickness)[0]
@@ -261,6 +262,8 @@ def addOutputOptionsToDisplayFrame(frame):
     # write start over and print text
     writeText(frame, STARTOVER_TEXT, STARTOVER_X, STARTOVER_Y, FONT_NORMAL, STARTOVER_SIZE, STARTOVER_THICKNESS, COLOUR_WHITE)
     writeText(frame, PRINT_TEXT, PRINT_TEXT_X, PRINT_TEXT_Y, FONT_NORMAL, PRINT_TEXT_SIZE, PRINT_TEXT_THICKNESS, COLOUR_WHITE)
+
+    writeTextCenteredHorizontal(frame, "Photos will be available after the wedding", PRINT_TEXT_Y + 100, FONT_NORMAL, PRINT_TEXT_SIZE - 2, PRINT_TEXT_THICKNESS - 1, COLOUR_WHITE)
 
     overlay_transparent(frame, arrow, STARTOVER_X + 150, STARTOVER_Y + 20)
     overlay_transparent(frame, arrow, PRINT_TEXT_X + 290, STARTOVER_Y + 20)
@@ -481,7 +484,7 @@ def run():
                 if k == BUTTON_PRINT or rightButton.is_pressed:
                     print("Print")                    
                     savePhoto(originalFrame, stylisedFrame)
-                    printImage(originalFrame)
+                    #printImage(originalFrame)
                     nxt = True
         if k == 113:
             break
