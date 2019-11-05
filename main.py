@@ -66,9 +66,9 @@ FONT_ITALIC = cv2.FONT_HERSHEY_SCRIPT_COMPLEX
 
 
 # GOOGLE DRIVE
-#gauth = GoogleAuth()
-#gauth.LocalWebserverAuth()
-#drive = GoogleDrive(gauth)
+gauth = GoogleAuth()
+gauth.LocalWebserverAuth()
+drive = GoogleDrive(gauth)
 
 
 
@@ -346,6 +346,9 @@ def savePhoto(original, stylised):
     saveToUSB(filenameStylised, stylised)
 
 
+def printPhoto(frame):
+
+
 def run():
     while (True):
         print("Ready...")
@@ -384,6 +387,7 @@ def run():
                 if k == BUTTON_PRINT:
                     print("Print")
                     savePhoto(originalFrame, stylisedFrame)
+                    printPhoto(originalFrame)
                     nxt = True
         if k == 113:
             break
