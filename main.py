@@ -11,6 +11,13 @@ from pydrive.drive import GoogleDrive
 import socket
 import picamera.array
 import picamera
+from pushover import *
+from gpiozero import Button
+from signal import pause
+from gpiozero import LED
+from time import sleep
+from PIL import ImageFont, ImageDraw, Image
+import cups
 
 WINDOW_W = 1440
 WINDOW_H = 900
@@ -18,25 +25,37 @@ WINDOW_H = 900
 OUTPUT_PATH = str(os.getcwd()) + "/photos/"
 OUTPUT_STYLE = 0 # 0 = POLAROID, 1 = OVERLAY GRAPHIC
 
-COUNTDOWN_TIME = 6
+COUNTDOWN_TIME = 10
+COUNTDOWN_SIZE = 6
+COUNTDOWN_THICKNESS = 5
+COUNTDOWN_OVERLAY_X = WINDOW_W / 2
+COUNTDOWN_OVERLAY_Y = (WINDOW_H / 2)
+COUNTDOWN_OVERLAY_W = COUNTDOWN_OVERLAY_X + 200
+COUNTDOWN_OVERLAY_H = COUNTDOWN_OVERLAY_Y + 200
 
-CAPTURE_TEXT = "Press Button (b)"
+CAPTURE_TEXT = "Press the middle button"
+CAPTURE_TEXT2 = "below to take a photo!"
+CAPTURE_TEXT3 = "You have " + str(COUNTDOWN_TIME) + " seconds to pose!"
 CAPTURE_X = (WINDOW_W / 2) - 50
-CAPTURE_Y = WINDOW_H / 2
-CAPTURE_SIZE = 2
-CAPTURE_THICKNESS = 2
+CAPTURE_Y = (WINDOW_H / 2) 
+CAPTURE_SIZE = 3.5
+CAPTURE_THICKNESS = 3
 
-STARTOVER_TEXT = "Start Over (s)"
-STARTOVER_X = 150
+STARTOVER_TEXT = "Start Over"
+STARTOVER_X = 50
 STARTOVER_Y = WINDOW_H - 130
-STARTOVER_SIZE = 2
-STARTOVER_THICKNESS = 2
+STARTOVER_SIZE = 3
+STARTOVER_THICKNESS = 3
 
-PRINT_TEXT = "Print! (p)"
-PRINT_TEXT_X = WINDOW_W - 425
+PRINT_TEXT = "Save Photo!"
+PRINT_TEXT_X = WINDOW_W - 600
 PRINT_TEXT_Y = WINDOW_H - 130
-PRINT_TEXT_SIZE = 2
-PRINT_TEXT_THICKNESS = 2
+PRINT_TEXT_SIZE = 3
+PRINT_TEXT_THICKNESS = 3
+
+arrow = cv2.imread('arrow.png', cv2.IMREAD_UNCHANGED)
+arrow = cv2.resize(arrow, None, fx=0.4, fy=0.4)
+
 
 BUTTON_CAPTURE = 98
 BUTTON_STARTOVER = 115
@@ -46,13 +65,17 @@ COLOUR_WHITE = (255, 255, 255)
 COLOUR_BLACK = (0, 0, 0)
 
 
-resw = 2592
-resh = 1944
+resw = 3280
+resh = 2464
 
 camera = picamera.PiCamera()#sensor_mode=2)
 camera.resolution = (resw,resh)
 camera.framerate = 15
-camera.brightness = 60
+camera.brightness = 55
+#camera.contrast = 8
+#camera.video_stabilization = True
+#camera.exposure_mode = 'auto'
+camera.rotation = 180
 rawCapture = picamera.array.PiRGBArray(camera, size=(resw,resh))
 time.sleep(1)
 
@@ -63,6 +86,7 @@ cv2.setWindowProperty('Photobooth', cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCRE
 
 FONT_NORMAL = cv2.FONT_HERSHEY_SIMPLEX
 FONT_ITALIC = cv2.FONT_HERSHEY_SCRIPT_COMPLEX
+roboto = ImageFont.truetype("Roboto-Regular.ttf", 148)
 
 
 # GOOGLE DRIVE
@@ -71,6 +95,37 @@ gauth.LocalWebserverAuth()
 drive = GoogleDrive(gauth)
 
 
+
+# printing
+conn = cups.Connection()
+printers = conn.getPrinters()
+canonPrinter = list(printers.keys())[0] # 0 for canon, 1 for pdf
+
+"""
+def leftButtonAction():
+    test = 1
+    
+def middleButtonAction():
+    originalFrame = countdown(COUNTDOWN_TIME)
+    
+def rightButtonAction():
+    test = 1
+"""
+
+leftButton = Button(4)
+#leftButton.when_pressed = leftButtonAction
+
+middleButton = Button(22)
+#middleButton.when_pressed = middleButtonAction
+
+rightButton = Button(17)
+#rightButton.when_pressed = rightButtonAction
+
+
+
+leftLight = LED(19)
+middleLight = LED(6)
+rightLight = LED(21)
 
 
 def writeTextCentered(frame, text, font, size, thickness, colour):
@@ -95,46 +150,7 @@ def writeText(frame, text, x, y, font, size, thickness, colour):
 
 def createFrameBlack():
     return np.zeros((WINDOW_H, WINDOW_W, 3), np.uint8)
-
-"""
-class PiCam:
-    def __init__(self, resolution=(640,480), framerate=30):
-        self.camera = picamera.PiCamera()
-        self.camera.resolution = resolution
-        self.camera.framerate = framerate
-        self.camera.brightness = 60
-        self.rawCapture = picamera.array.PiRGBArray(self.camera, size=resolution)
-        self.stream = self.camera.capture_continuous(self.rawCapture, format="bgr", use_video_port=True)
-
-        self.frame = None
-        self.stopped = False
-
-    def start(self):
-        threading.Thread(target=self.update, args=()).start()
-        return self
-
-    def update(self):
-        for f in self.stream:
-            self.frame = f.array
-            self.rawCapture.truncate(0)
-            self.rawCapture.seek(0)
-
-            if self.stopped:
-                self.stream.close()
-                self.rawCapture.close()
-                self.camera.close()
-                return
-
-    def read(self):
-        return self.frame
-
-    def cap(self):
-        self.camera.capture(self.rawCapture, format='bgr')
-        return self.rawCapture.array
-
-    def stop(self):
-        self.stopped = True
-"""        
+    
 
 def countdown(countdown):
     oldtime = time.time()
@@ -159,7 +175,18 @@ def countdown(countdown):
             img = cv2.resize(img, (1440, 900))
 
             # write countdown on image
-            writeTextCentered(img, str(countdown), FONT_NORMAL, 4, 2, COLOUR_WHITE)
+            overlay = img.copy()
+            if countdown != 0:
+                cv2.rectangle(overlay, (620, 550), (820, 750), COLOUR_BLACK, -1)
+                alpha = 0.3
+                cv2.addWeighted(overlay, alpha, img, 1 - alpha, 0, img)
+                writeTextCenteredHorizontal(img, str(countdown), 710, FONT_NORMAL, COUNTDOWN_SIZE, COUNTDOWN_THICKNESS, COLOUR_WHITE)
+            else:
+                cv2.rectangle(overlay, (320, 550), (1120, 750), COLOUR_BLACK, -1)
+                alpha = 0.3
+                cv2.addWeighted(overlay, alpha, img, 1 - alpha, 0, img)
+                writeTextCenteredHorizontal(img, "Cheese!", 710, FONT_NORMAL, COUNTDOWN_SIZE, COUNTDOWN_THICKNESS+1, COLOUR_WHITE)
+
 
             # display image
             cv2.imshow('Photobooth', img)
@@ -215,14 +242,16 @@ def overlay_transparent(background, overlay, x, y):
 
 
 pressButtonFrame = np.zeros((WINDOW_H, WINDOW_W, 3), np.uint8)
-writeTextCentered(pressButtonFrame, CAPTURE_TEXT, FONT_NORMAL, CAPTURE_SIZE, CAPTURE_THICKNESS, COLOUR_WHITE)
+writeTextCenteredHorizontal(pressButtonFrame, CAPTURE_TEXT, CAPTURE_Y - 50, FONT_NORMAL, CAPTURE_SIZE, CAPTURE_THICKNESS, COLOUR_WHITE)
+writeTextCenteredHorizontal(pressButtonFrame, CAPTURE_TEXT2, CAPTURE_Y + 70, FONT_NORMAL, CAPTURE_SIZE, CAPTURE_THICKNESS, COLOUR_WHITE)
+writeTextCenteredHorizontal(pressButtonFrame, CAPTURE_TEXT3, CAPTURE_Y + 300, FONT_NORMAL, 2.5, CAPTURE_THICKNESS, COLOUR_WHITE)
 
 
 def addOutputOptionsToDisplayFrame(frame):
-    x = 0 + 50
-    y = WINDOW_H - 200
-    w = WINDOW_W - 100
-    h = 100
+    x = 0
+    y = WINDOW_H - 230
+    w = WINDOW_W
+    h = 300
 
     overlay = frame.copy()
     
@@ -234,6 +263,12 @@ def addOutputOptionsToDisplayFrame(frame):
     writeText(frame, STARTOVER_TEXT, STARTOVER_X, STARTOVER_Y, FONT_NORMAL, STARTOVER_SIZE, STARTOVER_THICKNESS, COLOUR_WHITE)
     writeText(frame, PRINT_TEXT, PRINT_TEXT_X, PRINT_TEXT_Y, FONT_NORMAL, PRINT_TEXT_SIZE, PRINT_TEXT_THICKNESS, COLOUR_WHITE)
 
+    writeTextCenteredHorizontal(frame, "Photos will be available after the wedding", PRINT_TEXT_Y + 100, FONT_NORMAL, PRINT_TEXT_SIZE - 2, PRINT_TEXT_THICKNESS - 1, COLOUR_WHITE)
+
+    overlay_transparent(frame, arrow, STARTOVER_X + 150, STARTOVER_Y + 20)
+    overlay_transparent(frame, arrow, PRINT_TEXT_X + 290, STARTOVER_Y + 20)
+
+
 def overlayGraphicFrame(frame):
     overlay = cv2.imread('overlay.png', cv2.IMREAD_UNCHANGED)
     overlay_transparent(frame, overlay, 30, WINDOW_H - 120)
@@ -244,7 +279,7 @@ def overlayPolaroidFrame(frame):
     left = int(0.05 * frame.shape[1])  # shape[1] = cols
     right = left
     newf = cv2.copyMakeBorder(frame, top, bottom, left, right, cv2.BORDER_CONSTANT, None, COLOUR_WHITE)
-    writeTextCenteredHorizontal(newf, "Rebecca & Harry - Mar Hall - 2019", newf.shape[0] - 30, FONT_ITALIC, STARTOVER_SIZE, STARTOVER_THICKNESS, COLOUR_BLACK)
+    writeTextCenteredHorizontal(newf, "Rebecca & Harry   Mar Hall   22/09/2019", newf.shape[0] - 30, FONT_ITALIC, STARTOVER_SIZE, STARTOVER_THICKNESS, COLOUR_BLACK)
     return newf
 
 
@@ -323,7 +358,6 @@ def savePhoto(original, stylised):
     cv2.imwrite(OUTPUT_PATH + filenameStylised, stylised)
     print("SUCCESS: Saved locally:", filenameStylised)
 
-
     old = time.time()
     
     # Save photo to remote backup
@@ -340,26 +374,86 @@ def savePhoto(original, stylised):
     now = time.time()
     print("upload took", now - old)
         
-
     # Save photo to external usb drive
     saveToUSB(filenameOriginal, original)
     saveToUSB(filenameStylised, stylised)
 
 
-def printPhoto(frame):
+def printImage(image):
+    screen = createFrameBlack()
+        
+    image = cv2.resize(image, None, fx=0.12, fy=0.12)
+    cv2.imwrite("print/scaled_print.jpg", image)
 
+    #job = conn.printFile(canonPrinter, "//home/pi/Desktop/photobooth/print/scaled_print.jpg", "", {'fit-to-page':'True'})
+    job = conn.printTestPage(canonPrinter)
+    print("print job " + str(job))
+    
+    while True:
+        if conn.getJobs().get(job, None) is not None:
+            jobProgress = conn.getJobAttributes(job)['job-media-progress']
+            print(jobProgress)
+            time.sleep(2)
+            
+            writeTextCenteredHorizontal(screen, "Printing your photo...", 900/2 - 100, FONT_NORMAL, 4, 4, COLOUR_WHITE)    
+            progStr = "{0}%".format(str(jobProgress))
+
+            cv2_im_rgb = cv2.cvtColor(screen, cv2.COLOR_BGR2RGB)
+            pil_im = Image.fromarray(cv2_im_rgb)
+            draw = ImageDraw.Draw(pil_im)
+            draw.text((1400/2-100, 900/2), progStr, font=roboto)
+            screen = cv2.cvtColor(np.array(pil_im), cv2.COLOR_RGB2BGR)
+            
+            cv2.imshow('Photobooth', screen)
+            cv2.waitKey(1000)
+            screen = createFrameBlack()
+                        
+        else:
+            # should wait for 5 secs or so
+            # TODO IN MORNING MODIFY THE LAST SLEEP HERE
+            print("done printing, finishing!")
+            
+            cv2.waitKey(5000)
+            writeTextCenteredHorizontal(screen, "Collect your photo below!", 900/2, FONT_NORMAL, 3.5, 4, COLOUR_WHITE)
+            cv2.imshow('Photobooth', screen)
+            cv2.waitKey(4000)
+            break
+        
+
+def get_key(filename):
+    with open(filename) as f:
+        key = f.read().strip()
+    return key
+
+from random import randrange
 
 def run():
+    old = time.time()
     while (True):
-        print("Ready...")
+        #print("Ready...")
+
+        now = time.time()
+
+        middleLight.on()
+        leftLight.off()
+        rightLight.off()
 
         # show start message
         cv2.imshow('Photobooth', pressButtonFrame)
         # wait for button press
-        k = cv2.waitKey(0)
-        if k == BUTTON_CAPTURE:
+        
+        # TODOOOO IN MORNING TRY DOING WAITKEY 1000+ TO BLINK LIGHT?
+        if now - old >= 1:
+            print("1 sec and", randrange(10))
+            middleLight.off()
+            old = time.time()
+        
+        
+        k = cv2.waitKey(1)
+        if k == BUTTON_CAPTURE or middleButton.is_pressed:        
             print("Capture")
             # ORIGINAL frame (from camera)
+            middleLight.off()
             originalFrame = countdown(COUNTDOWN_TIME)
 
             # STYLISED frame (for printing)
@@ -380,22 +474,25 @@ def run():
             # wait until start over or print is selected
             nxt = False
             while not nxt:
-                k = cv2.waitKey(0)
-                if k == BUTTON_STARTOVER:
-                    print("Startover")
+                k = cv2.waitKey(1)
+                leftLight.on()
+                rightLight.on()
+                
+                if k == BUTTON_STARTOVER or leftButton.is_pressed:
+                    print("Startover")                    
                     nxt = True
-                if k == BUTTON_PRINT:
-                    print("Print")
+                if k == BUTTON_PRINT or rightButton.is_pressed:
+                    print("Print")                    
                     savePhoto(originalFrame, stylisedFrame)
+
                     printPhoto(originalFrame)
+                    #printImage(originalFrame)
                     nxt = True
         if k == 113:
             break
-            
-
+                            
 
 def main():
-    print("Startup")
     # Check if we have an internet connection
     """if CheckInternetConnection() == True:
         
@@ -412,11 +509,24 @@ def main():
         print("not connected")
     """
 
-
+    createExportDirectory(OUTPUT_PATH)
     CheckInternetConnection()
     checkUSBConnected()
 
     run()
+    """
+    push_user = get_key(os.path.join(os.path.dirname(__file__), 'pushuser.key'))
+    push_api = get_key(os.path.join(os.path.dirname(__file__), 'pushapi.key'))
+    
+    pusher = PushoverSender(push_user, push_api)
+    pusher.send("from rpi")"""
+    
+    camera.close()
+    
+    middleLight.on()
+    leftLight.off()
+    rightLight.off()
+
 
 if __name__ == "__main__":
     main()
