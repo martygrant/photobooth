@@ -9,12 +9,18 @@ from copy import deepcopy
 from pydrive.auth import GoogleAuth
 from pydrive.drive import GoogleDrive
 import socket
-import picamera.array
-import picamera
-from pushover import *
-from gpiozero import Button
-from signal import pause
-from gpiozero import LED
+import platform
+from random import randrange
+if platform.system() == 'Darwin':
+    RASPI = 0
+elif platform.system() == 'Raspberry Pi':
+    RASPI = 1
+    import picamera.array
+    import picamera
+    from pushover import *
+    from gpiozero import Button
+    from signal import pause
+    from gpiozero import LED
 from time import sleep
 from PIL import ImageFont, ImageDraw, Image
 import cups
@@ -68,16 +74,21 @@ COLOUR_BLACK = (0, 0, 0)
 resw = 3280
 resh = 2464
 
-camera = picamera.PiCamera()#sensor_mode=2)
-camera.resolution = (resw,resh)
-camera.framerate = 15
-camera.brightness = 55
-#camera.contrast = 8
-#camera.video_stabilization = True
-#camera.exposure_mode = 'auto'
-camera.rotation = 180
-rawCapture = picamera.array.PiRGBArray(camera, size=(resw,resh))
-time.sleep(1)
+if RASPI:
+    camera = picamera.PiCamera()#sensor_mode=2)
+    camera.resolution = (resw,resh)
+    camera.framerate = 15
+    camera.brightness = 55
+    #camera.contrast = 8
+    #camera.video_stabilization = True
+    #camera.exposure_mode = 'auto'
+    camera.rotation = 180
+    rawCapture = picamera.array.PiRGBArray(camera, size=(resw,resh))
+    time.sleep(1)
+else:
+    camera = cv2.VideoCapture(0)
+    camera.set(cv2.CAP_PROP_FRAME_WIDTH, 512)
+    camera.set(cv2.CAP_PROP_FRAME_HEIGHT, 512)
 
 
 window = cv2.namedWindow("Photobooth", cv2.WINDOW_NORMAL)
@@ -90,9 +101,9 @@ roboto = ImageFont.truetype("Roboto-Regular.ttf", 148)
 
 
 # GOOGLE DRIVE
-gauth = GoogleAuth()
-gauth.LocalWebserverAuth()
-drive = GoogleDrive(gauth)
+#gauth = GoogleAuth()
+#gauth.LocalWebserverAuth()
+#drive = GoogleDrive(gauth)
 
 
 
@@ -111,21 +122,19 @@ def middleButtonAction():
 def rightButtonAction():
     test = 1
 """
+if RASPI:
+    leftButton = Button(4)
+    #leftButton.when_pressed = leftButtonAction
 
-leftButton = Button(4)
-#leftButton.when_pressed = leftButtonAction
+    middleButton = Button(22)
+    #middleButton.when_pressed = middleButtonAction
 
-middleButton = Button(22)
-#middleButton.when_pressed = middleButtonAction
+    rightButton = Button(17)
+    #rightButton.when_pressed = rightButtonAction
 
-rightButton = Button(17)
-#rightButton.when_pressed = rightButtonAction
-
-
-
-leftLight = LED(19)
-middleLight = LED(6)
-rightLight = LED(21)
+    leftLight = LED(19)
+    middleLight = LED(6)
+    rightLight = LED(21)
 
 
 def writeTextCentered(frame, text, font, size, thickness, colour):
@@ -152,6 +161,8 @@ def createFrameBlack():
     return np.zeros((WINDOW_H, WINDOW_W, 3), np.uint8)
     
 
+
+"""
 def countdown(countdown):
     oldtime = time.time()
     
@@ -204,6 +215,36 @@ def countdown(countdown):
             rawCapture.seek(0)
             rawCapture.truncate(0)
             return rawCapture.array
+"""
+
+def countdown(count):
+    oldtime = time.time()
+    secs = 0
+    while True:
+        currenttime = time.time()
+
+        #print(count)
+        #img = np.zeros((WINDOW_W, WINDOW_H, 3), np.uint8)
+        
+        ret_val, img = camera.read()
+
+        writeTextCentered(img, str(count - secs), FONT_NORMAL, 4, 2, COLOUR_WHITE)
+        cv2.imshow('Photobooth', img)
+        cv2.waitKey(1)
+        img = createFrameBlack()
+
+        print(secs)
+
+        if currenttime - oldtime >= 1:
+            secs += 1
+            oldtime = time.time()
+
+        if secs >= count:
+            ret, frame = camera.read()
+            #frame = cv2.resize(frame, (0,0), fx=0.5, fy=0.5)
+            #frame = cv2.resize(frame, (512, 512)) 
+            return frame
+
 
 
 
@@ -425,35 +466,37 @@ def get_key(filename):
         key = f.read().strip()
     return key
 
-from random import randrange
+
 
 def run():
     old = time.time()
     while (True):
         #print("Ready...")
 
-        now = time.time()
-
-        middleLight.on()
-        leftLight.off()
-        rightLight.off()
-
         # show start message
         cv2.imshow('Photobooth', pressButtonFrame)
-        # wait for button press
         
-        # TODOOOO IN MORNING TRY DOING WAITKEY 1000+ TO BLINK LIGHT?
-        if now - old >= 1:
-            print("1 sec and", randrange(10))
-            middleLight.off()
-            old = time.time()
+        if RASPI:
+            now = time.time()
+
+            middleLight.on()
+            leftLight.off()
+            rightLight.off()
+
+            # wait for button press
+            # TODOOOO IN MORNING TRY DOING WAITKEY 1000+ TO BLINK LIGHT?
+            if now - old >= 1:
+                print("1 sec and", randrange(10))
+                middleLight.off()
+                old = time.time()
         
         
         k = cv2.waitKey(1)
-        if k == BUTTON_CAPTURE or middleButton.is_pressed:        
+        if k == BUTTON_CAPTURE:# or middleButton.is_pressed:        
             print("Capture")
             # ORIGINAL frame (from camera)
-            middleLight.off()
+            if RASPI:
+                middleLight.off()
             originalFrame = countdown(COUNTDOWN_TIME)
 
             # STYLISED frame (for printing)
@@ -475,17 +518,18 @@ def run():
             nxt = False
             while not nxt:
                 k = cv2.waitKey(1)
-                leftLight.on()
-                rightLight.on()
+                if RASPI:
+                    leftLight.on()
+                    rightLight.on()
                 
-                if k == BUTTON_STARTOVER or leftButton.is_pressed:
+                if k == BUTTON_STARTOVER:# or leftButton.is_pressed:
                     print("Startover")                    
                     nxt = True
-                if k == BUTTON_PRINT or rightButton.is_pressed:
+                if k == BUTTON_PRINT:# or rightButton.is_pressed:
                     print("Print")                    
                     savePhoto(originalFrame, stylisedFrame)
 
-                    printPhoto(originalFrame)
+                    #printPhoto(originalFrame)
                     #printImage(originalFrame)
                     nxt = True
         if k == 113:
