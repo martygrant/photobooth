@@ -6,9 +6,6 @@ import datetime
 import threading
 from random import randint
 from copy import deepcopy
-from pydrive.auth import GoogleAuth
-from pydrive.drive import GoogleDrive
-import socket
 import platform
 from random import randrange
 if platform.system() == 'Darwin':
@@ -24,6 +21,7 @@ elif platform.system() == 'Raspberry Pi':
 from time import sleep
 from PIL import ImageFont, ImageDraw, Image
 import cups
+from backup import *
 
 WINDOW_W = 1440
 WINDOW_H = 900
@@ -98,12 +96,6 @@ cv2.setWindowProperty('Photobooth', cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCRE
 FONT_NORMAL = cv2.FONT_HERSHEY_SIMPLEX
 FONT_ITALIC = cv2.FONT_HERSHEY_SCRIPT_COMPLEX
 roboto = ImageFont.truetype("Roboto-Regular.ttf", 148)
-
-
-# GOOGLE DRIVE
-#gauth = GoogleAuth()
-#gauth.LocalWebserverAuth()
-#drive = GoogleDrive(gauth)
 
 
 
@@ -333,62 +325,6 @@ def createExportDirectory(path):
         print("INFO: Directory '%s' already exists" % path)
 
 
-def CheckInternetConnection(host="8.8.8.8", port=53, timeout=3):
-  """
-  Host: 8.8.8.8 (google-public-dns-a.google.com)
-  OpenPort: 53/tcp
-  Service: domain (DNS/TCP)
-  """
-  try:
-    socket.setdefaulttimeout(timeout)
-    socket.socket(socket.AF_INET, socket.SOCK_STREAM).connect((host, port))
-    print("SUCCESS: Connected to internet.")
-    return True
-  except socket.error as ex:
-    print("ERROR: No internet connection:", ex)
-    return False
-    
-
-def backupToGoogleDrive(filename, photo):
-    if CheckInternetConnection():
-        http = drive.auth.Get_Http_Object()
-        
-        folder_id = "1U1aCTd_K84IdQQ9_z1UUkZt7EbEk9_qT"
-        #file1 = drive.CreateFile({'title': 'photobooth/Hello.txt'})  # Create GoogleDriveFile instance with title 'Hello.txt'.
-        driveFile = drive.CreateFile({"parents": [{"kind": "drive#fileLink", "id": folder_id}], "title": filename})
-
-        driveFile.SetContentFile(OUTPUT_PATH + filename)
-        #file1.SetContentString('Hello World!') # Set content of the file from given string.
-        driveFile.Upload(param={"http": http})
-            
-        print("SUCCESS: Uploaded to GDrive:", filename)
-    else:
-        print("ERROR: Did not save to GDrive. No internet connection.")
-
-    """ get IDs for files/folders
-    file_list = drive.ListFile({'q': "'root' in parents and trashed=false"}).GetList()
-    for file1 in file_list:       
-        print ('title: %s, id: %s' % (file1['title'], file1['id']))
-    """
-
-def checkUSBConnected():
-    if not os.path.exists("/media/pi/2A47-4A89/photobooth/"):
-        print("ERROR: USB Drive not found.")
-        return False
-    else:
-        print("SUCCESS: USB Drive connected.")
-        return True
-
-
-def saveToUSB(filename, image):
-    path = "/media/pi/2A47-4A89/photobooth/"
-    if checkUSBConnected() == True:
-        cv2.imwrite(path + filename, image)
-        print("SUCCESS: Saved to USB Drive:", filename)
-    else:
-        print("ERROR: Did not save to USB Drive:", filename) 
-
-
 def savePhoto(original, stylised):
     # Save photo locally
     filenameOriginal = 'photobooth-{date:%Y-%m-%d_%H_%M_%S}_original.jpeg'.format(date=datetime.datetime.now())
@@ -403,9 +339,9 @@ def savePhoto(original, stylised):
     
     # Save photo to remote backup
     # todo check if drive object exists
-    uploadThreadOne = threading.Thread(target=backupToGoogleDrive, args=(filenameOriginal, original))
+    uploadThreadOne = threading.Thread(target=backupToGoogleDrive, args=(filenameOriginal, OUTPUT_PATH, original))
     uploadThreadOne.start()
-    uploadThreadTwo = threading.Thread(target=backupToGoogleDrive, args=(filenameStylised, stylised))
+    uploadThreadTwo = threading.Thread(target=backupToGoogleDrive, args=(filenameStylised, OUTPUT_PATH, stylised))
     uploadThreadTwo.start()
 
     # TODO PROBABLY DON'T NEED TO WAIT, TAKES ~2SECS, RESEARCH THIS
@@ -574,7 +510,6 @@ def main():
 
 if __name__ == "__main__":
     main()
-    
 
 
 cv2.waitKey(0)

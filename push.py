@@ -1,5 +1,6 @@
 import httplib
 import urllib
+
 class PushoverSender:
     def __init__(self, user_key, api_key):
         self.user_key = user_key
