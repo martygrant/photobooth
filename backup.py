@@ -5,9 +5,9 @@ from pydrive.drive import GoogleDrive
 import socket
 
 # GOOGLE DRIVE
-gauth = GoogleAuth()
-gauth.LocalWebserverAuth()
-drive = GoogleDrive(gauth)
+#gauth = GoogleAuth()
+#gauth.LocalWebserverAuth()
+#drive = GoogleDrive(gauth)
 
 def checkUSBConnected():
     if not os.path.exists("/media/pi/2A47-4A89/photobooth/"):

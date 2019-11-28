@@ -22,6 +22,7 @@ from time import sleep
 from PIL import ImageFont, ImageDraw, Image
 import cups
 from backup import *
+from Camera import *
 
 WINDOW_W = 1440
 WINDOW_H = 900
@@ -509,8 +510,38 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    #main()
+    camera = Camera("opencv", 5)
 
+    camera.previewCountdown()
+    while camera.isPreviewRunning():
+        test = 1
+        # update preview display here
+    camera.capture()
+
+"""
+press button
+    flash buttons until button pressed
+    button pressed
+        button lights off
+        start preview countdown
+        update preview display
+        take image once preview finishes
+        show final image with start over / print
+        left/right button lights on
+        start over
+            reset 
+        print
+            save to file, external disc and cloud
+            check print supplies
+            send to printer
+            update display with print status
+            update print supplies
+            send notification if supplies low
+            reset
+        reset
+
+"""
 
 cv2.waitKey(0)
 
