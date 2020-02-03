@@ -1,11 +1,13 @@
 import time
 import cv2
 import numpy as np
+from enum import Enum
+from copy import deepcopy
+from globals import *
 
-COLOUR_WHITE = (255, 255, 255)
-FONT_NORMAL = cv2.FONT_HERSHEY_SIMPLEX
-WINDOW_W = 1440
-WINDOW_H = 900
+class Backend(Enum):
+    OPENCV = 1
+    PICAM = 2
 
 
 def createFrameBlack():
@@ -21,14 +23,15 @@ def writeTextCentered(frame, text, font, size, thickness, colour):
     textX = (frame.shape[1] - textsize[0]) / 2
     textY = (frame.shape[0] + textsize[1]) / 2
 
+    writeText(frame, text, textX, textY, font, size, thickness, colour)
 
 
 class Camera:
     def __init__(self, backend, previewDuration):
         self._backend = backend
         self._previewDuration = previewDuration
-        self._previewRunning = False
         self._previewImage = "test"
+        self._captureImage = "test"
         self._camera = cv2.VideoCapture(0)
         self._camera.set(cv2.CAP_PROP_FRAME_WIDTH, 512)
         self._camera.set(cv2.CAP_PROP_FRAME_HEIGHT, 512)
@@ -36,13 +39,10 @@ class Camera:
     def previewCountdown(self):
         print("previewCountdown")
 
-        self.previewRunning = True
-
         oldTime = time.time()
         timeLeft = self._previewDuration
         while True:
             currentTime = time.time()
-
 
             ret_val, img = self._camera.read()
 
@@ -61,14 +61,40 @@ class Camera:
             if timeLeft < 1:
                 print("finished preview")
                 self._previewImage = self._camera.read()
-                self._previewRunning = False
                 return
-
-    def isPreviewRunning(self):
-        return self._previewRunning
 
     def getPreviewImage(self):
         return self._previewImage
 
     def capture(self):
+        ret_val, self._captureImage = self._camera.read()
+        return self._captureImage
         print("capture")
+
+    def outputDisplay(self):
+        frame = deepcopy(self._captureImage)
+        frame = cv2.resize(frame, (1440, 900))
+        
+        x = 0
+        y = WINDOW_H - 230
+        w = WINDOW_W
+        h = 300
+
+        overlay = frame.copy()
+    
+        cv2.rectangle(overlay, (x, y), (x+w, y+h), COLOUR_BLACK, -1)
+        alpha = 0.6
+        cv2.addWeighted(overlay, alpha, frame, 1 - alpha, 0, frame)
+
+        # write start over and print text
+        #writeText(frame, STARTOVER_TEXT, STARTOVER_X, STARTOVER_Y, FONT_NORMAL, STARTOVER_SIZE, STARTOVER_THICKNESS, COLOUR_WHITE)
+        #writeText(frame, PRINT_TEXT, PRINT_TEXT_X, PRINT_TEXT_Y, FONT_NORMAL, PRINT_TEXT_SIZE, PRINT_TEXT_THICKNESS, COLOUR_WHITE)
+
+        #writeTextCenteredHorizontal(frame, "Photos will be available after the wedding", PRINT_TEXT_Y + 100, FONT_NORMAL, PRINT_TEXT_SIZE - 2, PRINT_TEXT_THICKNESS - 1, COLOUR_WHITE)
+
+        #overlay_transparent(frame, arrow, STARTOVER_X + 150, STARTOVER_Y + 20)
+        #overlay_transparent(frame, arrow, PRINT_TEXT_X + 290, STARTOVER_Y + 20)
+
+        print("outputDisplay")
+
+        return frame

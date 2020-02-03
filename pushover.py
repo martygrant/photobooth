@@ -13,3 +13,10 @@ class PushoverSender:
         conn.request("POST", "/1/messages.json", urllib.parse.urlencode(post_data), {"Content-type": "application/x-www-form-urlencoded"})
         #print(conn.getresponse().read())
         
+"""
+push_user = get_key(os.path.join(os.path.dirname(__file__), 'pushuser.key'))
+push_api = get_key(os.path.join(os.path.dirname(__file__), 'pushapi.key'))
+
+pusher = PushoverSender(push_user, push_api)
+pusher.send("from rpi")
+"""
