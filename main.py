@@ -106,61 +106,6 @@ def createFrameBlack():
     
 
 
-"""
-def countdown(countdown):
-    oldtime = time.time()
-    
-    img = None
-    firstRun = True
-
-    while True:
-        currenttime = time.time()
-        #print(dir(camera))
-
-        if currenttime - oldtime >= 1 or firstRun == True:
-            countdown -= 1
-            oldtime = time.time()
-            print(countdown)
-
-            # get image from camera
-            camera.capture(rawCapture, 'bgr')#, use_video_port=False)
-            img = rawCapture.array
-
-            # make preview fit window
-            img = cv2.resize(img, (1440, 900))
-
-            # write countdown on image
-            overlay = img.copy()
-            if countdown != 0:
-                cv2.rectangle(overlay, (620, 550), (820, 750), COLOUR_BLACK, -1)
-                alpha = 0.3
-                cv2.addWeighted(overlay, alpha, img, 1 - alpha, 0, img)
-                writeTextCenteredHorizontal(img, str(countdown), 710, FONT_NORMAL, COUNTDOWN_SIZE, COUNTDOWN_THICKNESS, COLOUR_WHITE)
-            else:
-                cv2.rectangle(overlay, (320, 550), (1120, 750), COLOUR_BLACK, -1)
-                alpha = 0.3
-                cv2.addWeighted(overlay, alpha, img, 1 - alpha, 0, img)
-                writeTextCenteredHorizontal(img, "Cheese!", 710, FONT_NORMAL, COUNTDOWN_SIZE, COUNTDOWN_THICKNESS+1, COLOUR_WHITE)
-
-
-            # display image
-            cv2.imshow('Photobooth', img)
-            cv2.waitKey(1)
-
-            # reset camera
-            rawCapture.seek(0)
-            rawCapture.truncate(0)
-
-            if firstRun == True:
-                firstRun = False
-
-        if countdown < 1:     
-            camera.capture(rawCapture, 'bgr', use_video_port=False)
-            rawCapture.seek(0)
-            rawCapture.truncate(0)
-            return rawCapture.array
-"""
-
 def countdown(count):
     oldtime = time.time()
     secs = 0
@@ -188,7 +133,6 @@ def countdown(count):
             #frame = cv2.resize(frame, (0,0), fx=0.5, fy=0.5)
             #frame = cv2.resize(frame, (512, 512)) 
             return frame
-
 
 
 
@@ -224,12 +168,6 @@ def overlay_transparent(background, overlay, x, y):
 
     background[y:y+h, x:x+w] = (1.0 - mask) * background[y:y+h, x:x+w] + mask * overlay_image
 
-
-
-pressButtonFrame = np.zeros((WINDOW_H, WINDOW_W, 3), np.uint8)
-writeTextCenteredHorizontal(pressButtonFrame, CAPTURE_TEXT, CAPTURE_Y - 50, FONT_NORMAL, CAPTURE_SIZE, CAPTURE_THICKNESS, COLOUR_WHITE)
-writeTextCenteredHorizontal(pressButtonFrame, CAPTURE_TEXT2, CAPTURE_Y + 70, FONT_NORMAL, CAPTURE_SIZE, CAPTURE_THICKNESS, COLOUR_WHITE)
-writeTextCenteredHorizontal(pressButtonFrame, CAPTURE_TEXT3, CAPTURE_Y + 300, FONT_NORMAL, 2.5, CAPTURE_THICKNESS, COLOUR_WHITE)
 
 
 def addOutputOptionsToDisplayFrame(frame):
@@ -460,16 +398,30 @@ if __name__ == "__main__":
     running = True
 
     buttonCapture = ord('c')
+    buttonStartOver = ord('s')
+    buttonPrint = ord('p')
 
     print("start")
 
     while running:
+
+        cv2.imshow('Photobooth', camera.startScreen())
+
         k = cv2.waitKey(1)
         if k == buttonCapture:
             camera.previewCountdown()            
             cv2.imshow('Photobooth', camera.capture())
             cv2.imshow('Photobooth', camera.outputDisplay())
-            
+            print("hi")
+            nxt = False
+            while not nxt:
+                k = cv2.waitKey(1)
+                if k == buttonStartOver:
+                    print("so")
+                    nxt = True
+                if k == buttonPrint:
+                    print("p")
+                    nxt = True
 
 """
 press button
@@ -499,3 +451,62 @@ cv2.waitKey(0)
 
 #camera.release()
 cv2.destroyAllWindows()
+
+
+
+
+
+"""
+def countdown(countdown):
+    oldtime = time.time()
+    
+    img = None
+    firstRun = True
+
+    while True:
+        currenttime = time.time()
+        #print(dir(camera))
+
+        if currenttime - oldtime >= 1 or firstRun == True:
+            countdown -= 1
+            oldtime = time.time()
+            print(countdown)
+
+            # get image from camera
+            camera.capture(rawCapture, 'bgr')#, use_video_port=False)
+            img = rawCapture.array
+
+            # make preview fit window
+            img = cv2.resize(img, (1440, 900))
+
+            # write countdown on image
+            overlay = img.copy()
+            if countdown != 0:
+                cv2.rectangle(overlay, (620, 550), (820, 750), COLOUR_BLACK, -1)
+                alpha = 0.3
+                cv2.addWeighted(overlay, alpha, img, 1 - alpha, 0, img)
+                writeTextCenteredHorizontal(img, str(countdown), 710, FONT_NORMAL, COUNTDOWN_SIZE, COUNTDOWN_THICKNESS, COLOUR_WHITE)
+            else:
+                cv2.rectangle(overlay, (320, 550), (1120, 750), COLOUR_BLACK, -1)
+                alpha = 0.3
+                cv2.addWeighted(overlay, alpha, img, 1 - alpha, 0, img)
+                writeTextCenteredHorizontal(img, "Cheese!", 710, FONT_NORMAL, COUNTDOWN_SIZE, COUNTDOWN_THICKNESS+1, COLOUR_WHITE)
+
+
+            # display image
+            cv2.imshow('Photobooth', img)
+            cv2.waitKey(1)
+
+            # reset camera
+            rawCapture.seek(0)
+            rawCapture.truncate(0)
+
+            if firstRun == True:
+                firstRun = False
+
+        if countdown < 1:     
+            camera.capture(rawCapture, 'bgr', use_video_port=False)
+            rawCapture.seek(0)
+            rawCapture.truncate(0)
+            return rawCapture.array
+"""

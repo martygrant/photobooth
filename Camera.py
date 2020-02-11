@@ -25,6 +25,46 @@ def writeTextCentered(frame, text, font, size, thickness, colour):
 
     writeText(frame, text, textX, textY, font, size, thickness, colour)
 
+def writeTextCenteredHorizontal(frame, text, y, font, size, thickness, colour):
+    textsize = cv2.getTextSize(text, font, size, thickness)[0]
+
+    # get coords based on boundary
+    textX = (frame.shape[1] - textsize[0]) / 2
+    
+    writeText(frame, text, textX, y, font, size, thickness, colour)
+
+def overlay_transparent(background, overlay, x, y):
+
+    background_width = background.shape[1]
+    background_height = background.shape[0]
+
+    if x >= background_width or y >= background_height:
+        return background
+
+    h, w = overlay.shape[0], overlay.shape[1]
+
+    if x + w > background_width:
+        w = background_width - x
+        overlay = overlay[:, :w]
+
+    if y + h > background_height:
+        h = background_height - y
+        overlay = overlay[:h]
+
+    if overlay.shape[2] < 4:
+        overlay = np.concatenate(
+            [
+                overlay,
+                np.ones((overlay.shape[0], overlay.shape[1], 1), dtype = overlay.dtype) * 255
+            ],
+            axis = 2,
+        )
+
+    overlay_image = overlay[..., :3]
+    mask = overlay[..., 3:] / 255.0
+
+    background[y:y+h, x:x+w] = (1.0 - mask) * background[y:y+h, x:x+w] + mask * overlay_image
+
 
 class Camera:
     def __init__(self, backend, previewDuration):
@@ -87,14 +127,21 @@ class Camera:
         cv2.addWeighted(overlay, alpha, frame, 1 - alpha, 0, frame)
 
         # write start over and print text
-        #writeText(frame, STARTOVER_TEXT, STARTOVER_X, STARTOVER_Y, FONT_NORMAL, STARTOVER_SIZE, STARTOVER_THICKNESS, COLOUR_WHITE)
-        #writeText(frame, PRINT_TEXT, PRINT_TEXT_X, PRINT_TEXT_Y, FONT_NORMAL, PRINT_TEXT_SIZE, PRINT_TEXT_THICKNESS, COLOUR_WHITE)
+        writeText(frame, STARTOVER_TEXT, STARTOVER_X, STARTOVER_Y, FONT_NORMAL, STARTOVER_SIZE, STARTOVER_THICKNESS, COLOUR_WHITE)
+        writeText(frame, PRINT_TEXT, PRINT_TEXT_X, PRINT_TEXT_Y, FONT_NORMAL, PRINT_TEXT_SIZE, PRINT_TEXT_THICKNESS, COLOUR_WHITE)
 
-        #writeTextCenteredHorizontal(frame, "Photos will be available after the wedding", PRINT_TEXT_Y + 100, FONT_NORMAL, PRINT_TEXT_SIZE - 2, PRINT_TEXT_THICKNESS - 1, COLOUR_WHITE)
+        writeTextCenteredHorizontal(frame, "Photos will be available after the wedding", PRINT_TEXT_Y + 100, FONT_NORMAL, PRINT_TEXT_SIZE - 2, PRINT_TEXT_THICKNESS - 1, COLOUR_WHITE)
 
-        #overlay_transparent(frame, arrow, STARTOVER_X + 150, STARTOVER_Y + 20)
-        #overlay_transparent(frame, arrow, PRINT_TEXT_X + 290, STARTOVER_Y + 20)
+        overlay_transparent(frame, arrow, STARTOVER_X + 150, STARTOVER_Y + 20)
+        overlay_transparent(frame, arrow, PRINT_TEXT_X + 290, STARTOVER_Y + 20)
 
         print("outputDisplay")
 
         return frame
+
+    def startScreen(self):
+        pressButtonFrame = np.zeros((WINDOW_H, WINDOW_W, 3), np.uint8)
+        writeTextCenteredHorizontal(pressButtonFrame, CAPTURE_TEXT, CAPTURE_Y - 50, FONT_NORMAL, CAPTURE_SIZE, CAPTURE_THICKNESS, COLOUR_WHITE)
+        writeTextCenteredHorizontal(pressButtonFrame, CAPTURE_TEXT2, CAPTURE_Y + 70, FONT_NORMAL, CAPTURE_SIZE, CAPTURE_THICKNESS, COLOUR_WHITE)
+        writeTextCenteredHorizontal(pressButtonFrame, CAPTURE_TEXT3, CAPTURE_Y + 300, FONT_NORMAL, 2.5, CAPTURE_THICKNESS, COLOUR_WHITE)
+        return pressButtonFrame
