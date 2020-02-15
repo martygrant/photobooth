@@ -215,35 +215,29 @@ def createExportDirectory(path):
         print("INFO: Directory '%s' already exists" % path)
 
 
-def savePhoto(original, stylised):
+def savePhoto(image):
     # Save photo locally
-    filenameOriginal = 'photobooth-{date:%Y-%m-%d_%H_%M_%S}_original.jpeg'.format(date=datetime.datetime.now())
-    cv2.imwrite(OUTPUT_PATH + filenameOriginal, original)
-    print("SUCCESS: Saved locally:", filenameOriginal)
+    filename = 'photobooth-{date:%Y-%m-%d_%H_%M_%S}.jpeg'.format(date=datetime.datetime.now())
+    cv2.imwrite(OUTPUT_PATH + filename, image)
+    print("SUCCESS: Saved locally:", filename)
     
-    filenameStylised = 'photobooth-{date:%Y-%m-%d_%H_%M_%S}_stylised.jpeg'.format(date=datetime.datetime.now())
-    cv2.imwrite(OUTPUT_PATH + filenameStylised, stylised)
-    print("SUCCESS: Saved locally:", filenameStylised)
-
+    """
     old = time.time()
     
     # Save photo to remote backup
     # todo check if drive object exists
-    uploadThreadOne = threading.Thread(target=backupToGoogleDrive, args=(filenameOriginal, OUTPUT_PATH, original))
+    uploadThreadOne = threading.Thread(target=backupToGoogleDrive, args=(filename, OUTPUT_PATH, image))
     uploadThreadOne.start()
-    uploadThreadTwo = threading.Thread(target=backupToGoogleDrive, args=(filenameStylised, OUTPUT_PATH, stylised))
-    uploadThreadTwo.start()
-
+    
     # TODO PROBABLY DON'T NEED TO WAIT, TAKES ~2SECS, RESEARCH THIS
     uploadThreadOne.join()
-    uploadThreadTwo.join()
 
     now = time.time()
     print("upload took", now - old)
-        
+    """
+
     # Save photo to external usb drive
-    saveToUSB(filenameOriginal, original)
-    saveToUSB(filenameStylised, stylised)
+    saveToUSB(filename, image)
 
 
 def printImage(image):
@@ -417,11 +411,25 @@ if __name__ == "__main__":
             while not nxt:
                 k = cv2.waitKey(1)
                 if k == buttonStartOver:
-                    print("so")
+                    print("startover")
                     nxt = True
                 if k == buttonPrint:
-                    print("p")
+                    print("print")
+                    cv2.imshow('Photobooth', camera.printScreen())
+                    #savePhoto()
+                    cv2.waitKey(3000)
                     nxt = True
+
+
+cv2.waitKey(0)
+
+#camera.release()
+cv2.destroyAllWindows()
+
+
+
+
+
 
 """
 press button
@@ -447,10 +455,9 @@ press button
 
 """
 
-cv2.waitKey(0)
 
-#camera.release()
-cv2.destroyAllWindows()
+
+
 
 
 

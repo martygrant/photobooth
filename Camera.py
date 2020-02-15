@@ -130,8 +130,6 @@ class Camera:
         writeText(frame, STARTOVER_TEXT, STARTOVER_X, STARTOVER_Y, FONT_NORMAL, STARTOVER_SIZE, STARTOVER_THICKNESS, COLOUR_WHITE)
         writeText(frame, PRINT_TEXT, PRINT_TEXT_X, PRINT_TEXT_Y, FONT_NORMAL, PRINT_TEXT_SIZE, PRINT_TEXT_THICKNESS, COLOUR_WHITE)
 
-        writeTextCenteredHorizontal(frame, "Photos will be available after the wedding", PRINT_TEXT_Y + 100, FONT_NORMAL, PRINT_TEXT_SIZE - 2, PRINT_TEXT_THICKNESS - 1, COLOUR_WHITE)
-
         overlay_transparent(frame, arrow, STARTOVER_X + 150, STARTOVER_Y + 20)
         overlay_transparent(frame, arrow, PRINT_TEXT_X + 290, STARTOVER_Y + 20)
 
@@ -140,8 +138,17 @@ class Camera:
         return frame
 
     def startScreen(self):
-        pressButtonFrame = np.zeros((WINDOW_H, WINDOW_W, 3), np.uint8)
+        pressButtonFrame = createFrameBlack()
+        
         writeTextCenteredHorizontal(pressButtonFrame, CAPTURE_TEXT, CAPTURE_Y - 50, FONT_NORMAL, CAPTURE_SIZE, CAPTURE_THICKNESS, COLOUR_WHITE)
         writeTextCenteredHorizontal(pressButtonFrame, CAPTURE_TEXT2, CAPTURE_Y + 70, FONT_NORMAL, CAPTURE_SIZE, CAPTURE_THICKNESS, COLOUR_WHITE)
         writeTextCenteredHorizontal(pressButtonFrame, CAPTURE_TEXT3, CAPTURE_Y + 300, FONT_NORMAL, 2.5, CAPTURE_THICKNESS, COLOUR_WHITE)
+        
         return pressButtonFrame
+
+    def printScreen(self):
+        printScreenFrame = createFrameBlack()
+        
+        writeTextCenteredHorizontal(printScreenFrame, "Printing...", 200, FONT_NORMAL, CAPTURE_SIZE, CAPTURE_THICKNESS, COLOUR_WHITE)
+
+        return printScreenFrame
