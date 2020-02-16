@@ -24,6 +24,7 @@ import cups
 from backup import *
 from Camera import *
 from globals import *
+from GUI import *
 
 
 if RASPI:
@@ -133,41 +134,6 @@ def countdown(count):
             #frame = cv2.resize(frame, (0,0), fx=0.5, fy=0.5)
             #frame = cv2.resize(frame, (512, 512)) 
             return frame
-
-
-
-def overlay_transparent(background, overlay, x, y):
-
-    background_width = background.shape[1]
-    background_height = background.shape[0]
-
-    if x >= background_width or y >= background_height:
-        return background
-
-    h, w = overlay.shape[0], overlay.shape[1]
-
-    if x + w > background_width:
-        w = background_width - x
-        overlay = overlay[:, :w]
-
-    if y + h > background_height:
-        h = background_height - y
-        overlay = overlay[:h]
-
-    if overlay.shape[2] < 4:
-        overlay = np.concatenate(
-            [
-                overlay,
-                np.ones((overlay.shape[0], overlay.shape[1], 1), dtype = overlay.dtype) * 255
-            ],
-            axis = 2,
-        )
-
-    overlay_image = overlay[..., :3]
-    mask = overlay[..., 3:] / 255.0
-
-    background[y:y+h, x:x+w] = (1.0 - mask) * background[y:y+h, x:x+w] + mask * overlay_image
-
 
 
 def addOutputOptionsToDisplayFrame(frame):
@@ -288,72 +254,7 @@ def get_key(filename):
 
 
 
-def run():
-    old = time.time()
-    while (True):
-        #print("Ready...")
 
-        # show start message
-        cv2.imshow('Photobooth', pressButtonFrame)
-        
-        if RASPI:
-            now = time.time()
-
-            middleLight.on()
-            leftLight.off()
-            rightLight.off()
-
-            # wait for button press
-            # TODOOOO IN MORNING TRY DOING WAITKEY 1000+ TO BLINK LIGHT?
-            if now - old >= 1:
-                print("1 sec and", randrange(10))
-                middleLight.off()
-                old = time.time()
-        
-        
-        k = cv2.waitKey(1)
-        if k == BUTTON_CAPTURE:# or middleButton.is_pressed:        
-            print("Capture")
-            # ORIGINAL frame (from camera)
-            if RASPI:
-                middleLight.off()
-            originalFrame = countdown(COUNTDOWN_TIME)
-
-            # STYLISED frame (for printing)
-            stylisedFrame = deepcopy(originalFrame)
-            if OUTPUT_STYLE == 0:
-                stylisedFrame = overlayPolaroidFrame(stylisedFrame)
-            else:
-                overlayGraphicFrame(stylisedFrame)
-
-            # DISPLAY frame (for screen)
-            dispframe = deepcopy(originalFrame)            
-            # add black bar at bottom for button text
-            dispframe = cv2.resize(dispframe, (1440, 900))
-            addOutputOptionsToDisplayFrame(dispframe)
-            
-            cv2.imshow('Photobooth', dispframe)
-
-            # wait until start over or print is selected
-            nxt = False
-            while not nxt:
-                k = cv2.waitKey(1)
-                if RASPI:
-                    leftLight.on()
-                    rightLight.on()
-                
-                if k == BUTTON_STARTOVER:# or leftButton.is_pressed:
-                    print("Startover")                    
-                    nxt = True
-                if k == BUTTON_PRINT:# or rightButton.is_pressed:
-                    print("Print")                    
-                    savePhoto(originalFrame, stylisedFrame)
-
-                    #printPhoto(originalFrame)
-                    #printImage(originalFrame)
-                    nxt = True
-        if k == 113:
-            break
                             
 
 def main():
@@ -385,9 +286,13 @@ def main():
     rightLight.off()
 
 
+
+
+
+
 if __name__ == "__main__":
     #main()
-    camera = Camera("opencv", 5)
+    camera = Camera("opencv")
 
     running = True
 
@@ -399,14 +304,40 @@ if __name__ == "__main__":
 
     while running:
 
-        cv2.imshow('Photobooth', camera.startScreen())
+        cv2.imshow('Photobooth', startScreen())
 
         k = cv2.waitKey(1)
         if k == buttonCapture:
-            camera.previewCountdown()            
-            cv2.imshow('Photobooth', camera.capture())
-            cv2.imshow('Photobooth', camera.outputDisplay())
-            print("hi")
+            
+
+            oldTime = time.time()
+            timeLeft = COUNTDOWN_TIME
+            prev = True
+            while prev:
+                currentTime = time.time()
+
+                img = camera.capture()
+
+                writeTextCentered(img, str(timeLeft), FONT_NORMAL, 4, 2, COLOUR_WHITE)
+                cv2.imshow('Photobooth', img)
+                cv2.waitKey(1)
+
+                # 1 second has passed
+                if currentTime - oldTime >= 1:
+                    print("preview countdown {0}s left".format(str(timeLeft)))
+                    timeLeft -= 1
+                    oldTime = time.time()
+
+                # countdown finished
+                if timeLeft < 1:
+                    print("finished preview")
+                    prev = False
+
+
+            image = camera.capture()            
+            cv2.imshow('Photobooth', image)
+            cv2.imshow('Photobooth', outputDisplay(image))
+
             nxt = False
             while not nxt:
                 k = cv2.waitKey(1)
@@ -415,8 +346,8 @@ if __name__ == "__main__":
                     nxt = True
                 if k == buttonPrint:
                     print("print")
-                    cv2.imshow('Photobooth', camera.printScreen())
-                    #savePhoto()
+                    cv2.imshow('Photobooth', printScreen())
+                    savePhoto(image)
                     cv2.waitKey(3000)
                     nxt = True
 
@@ -516,4 +447,75 @@ def countdown(countdown):
             rawCapture.seek(0)
             rawCapture.truncate(0)
             return rawCapture.array
+"""
+
+
+
+"""
+def run():
+    old = time.time()
+    while (True):
+        #print("Ready...")
+
+        # show start message
+        cv2.imshow('Photobooth', pressButtonFrame)
+        
+        if RASPI:
+            now = time.time()
+
+            middleLight.on()
+            leftLight.off()
+            rightLight.off()
+
+            # wait for button press
+            # TODOOOO IN MORNING TRY DOING WAITKEY 1000+ TO BLINK LIGHT?
+            if now - old >= 1:
+                print("1 sec and", randrange(10))
+                middleLight.off()
+                old = time.time()
+        
+        
+        k = cv2.waitKey(1)
+        if k == BUTTON_CAPTURE:# or middleButton.is_pressed:        
+            print("Capture")
+            # ORIGINAL frame (from camera)
+            if RASPI:
+                middleLight.off()
+            originalFrame = countdown(COUNTDOWN_TIME)
+
+            # STYLISED frame (for printing)
+            stylisedFrame = deepcopy(originalFrame)
+            if OUTPUT_STYLE == 0:
+                stylisedFrame = overlayPolaroidFrame(stylisedFrame)
+            else:
+                overlayGraphicFrame(stylisedFrame)
+
+            # DISPLAY frame (for screen)
+            dispframe = deepcopy(originalFrame)            
+            # add black bar at bottom for button text
+            dispframe = cv2.resize(dispframe, (1440, 900))
+            addOutputOptionsToDisplayFrame(dispframe)
+            
+            cv2.imshow('Photobooth', dispframe)
+
+            # wait until start over or print is selected
+            nxt = False
+            while not nxt:
+                k = cv2.waitKey(1)
+                if RASPI:
+                    leftLight.on()
+                    rightLight.on()
+                
+                if k == BUTTON_STARTOVER:# or leftButton.is_pressed:
+                    print("Startover")                    
+                    nxt = True
+                if k == BUTTON_PRINT:# or rightButton.is_pressed:
+                    print("Print")                    
+                    savePhoto(originalFrame, stylisedFrame)
+
+                    #printPhoto(originalFrame)
+                    #printImage(originalFrame)
+                    nxt = True
+        if k == 113:
+            break
 """
