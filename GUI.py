@@ -9,6 +9,15 @@ def createFrameBlack():
 def writeText(frame, text, x, y, font, size, thickness, colour):
     cv2.putText(frame, text, (int(x), int(y)), font, size, colour, thickness, cv2.LINE_AA)
 
+def writeTextCentered(frame, text, font, size, thickness, colour):
+    textsize = cv2.getTextSize(text, font, size, thickness)[0]
+
+    # get coords based on boundary
+    textX = (frame.shape[1] - textsize[0]) / 2
+    textY = (frame.shape[0] + textsize[1]) / 2
+
+    writeText(frame, text, textX, textY, font, size, thickness, colour)
+
 def writeTextCenteredHorizontal(frame, text, y, font, size, thickness, colour):
     textsize = cv2.getTextSize(text, font, size, thickness)[0]
 

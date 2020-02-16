@@ -82,82 +82,6 @@ if RASPI:
     rightLight = LED(21)
 
 
-def writeTextCentered(frame, text, font, size, thickness, colour):
-    textsize = cv2.getTextSize(text, font, size, thickness)[0]
-
-    # get coords based on boundary
-    textX = (frame.shape[1] - textsize[0]) / 2
-    textY = (frame.shape[0] + textsize[1]) / 2
-
-    writeText(frame, text, textX, textY, font, size, thickness, colour)
-
-def writeTextCenteredHorizontal(frame, text, y, font, size, thickness, colour):
-    textsize = cv2.getTextSize(text, font, size, thickness)[0]
-
-    # get coords based on boundary
-    textX = (frame.shape[1] - textsize[0]) / 2
-    
-    writeText(frame, text, textX, y, font, size, thickness, colour)
-
-def writeText(frame, text, x, y, font, size, thickness, colour):
-    cv2.putText(frame, text, (int(x), int(y)), font, size, colour, thickness, cv2.LINE_AA)
-
-def createFrameBlack():
-    return np.zeros((WINDOW_H, WINDOW_W, 3), np.uint8)
-    
-
-
-def countdown(count):
-    oldtime = time.time()
-    secs = 0
-    while True:
-        currenttime = time.time()
-
-        #print(count)
-        #img = np.zeros((WINDOW_W, WINDOW_H, 3), np.uint8)
-        
-        ret_val, img = camera.read()
-
-        writeTextCentered(img, str(count - secs), FONT_NORMAL, 4, 2, COLOUR_WHITE)
-        cv2.imshow('Photobooth', img)
-        cv2.waitKey(1)
-        img = createFrameBlack()
-
-        print(secs)
-
-        if currenttime - oldtime >= 1:
-            secs += 1
-            oldtime = time.time()
-
-        if secs >= count:
-            ret, frame = camera.read()
-            #frame = cv2.resize(frame, (0,0), fx=0.5, fy=0.5)
-            #frame = cv2.resize(frame, (512, 512)) 
-            return frame
-
-
-def addOutputOptionsToDisplayFrame(frame):
-    x = 0
-    y = WINDOW_H - 230
-    w = WINDOW_W
-    h = 300
-
-    overlay = frame.copy()
-    
-    cv2.rectangle(overlay, (x, y), (x+w, y+h), COLOUR_BLACK, -1)
-    alpha = 0.6
-    cv2.addWeighted(overlay, alpha, frame, 1 - alpha, 0, frame)
-
-    # write start over and print text
-    writeText(frame, STARTOVER_TEXT, STARTOVER_X, STARTOVER_Y, FONT_NORMAL, STARTOVER_SIZE, STARTOVER_THICKNESS, COLOUR_WHITE)
-    writeText(frame, PRINT_TEXT, PRINT_TEXT_X, PRINT_TEXT_Y, FONT_NORMAL, PRINT_TEXT_SIZE, PRINT_TEXT_THICKNESS, COLOUR_WHITE)
-
-    writeTextCenteredHorizontal(frame, "Photos will be available after the wedding", PRINT_TEXT_Y + 100, FONT_NORMAL, PRINT_TEXT_SIZE - 2, PRINT_TEXT_THICKNESS - 1, COLOUR_WHITE)
-
-    overlay_transparent(frame, arrow, STARTOVER_X + 150, STARTOVER_Y + 20)
-    overlay_transparent(frame, arrow, PRINT_TEXT_X + 290, STARTOVER_Y + 20)
-
-
 def overlayGraphicFrame(frame):
     overlay = cv2.imread('overlay.png', cv2.IMREAD_UNCHANGED)
     overlay_transparent(frame, overlay, 30, WINDOW_H - 120)
@@ -171,7 +95,6 @@ def overlayPolaroidFrame(frame):
     writeTextCenteredHorizontal(newf, "Rebecca & Harry   Mar Hall   22/09/2019", newf.shape[0] - 30, FONT_ITALIC, STARTOVER_SIZE, STARTOVER_THICKNESS, COLOUR_BLACK)
     return newf
 
-
 def createExportDirectory(path):
     if not os.path.exists(path):
         os.makedirs(path)
@@ -179,7 +102,6 @@ def createExportDirectory(path):
             
     else:
         print("INFO: Directory '%s' already exists" % path)
-
 
 def savePhoto(image):
     # Save photo locally
@@ -204,7 +126,6 @@ def savePhoto(image):
 
     # Save photo to external usb drive
     saveToUSB(filename, image)
-
 
 def printImage(image):
     screen = createFrameBlack()
@@ -246,16 +167,10 @@ def printImage(image):
             cv2.waitKey(4000)
             break
         
-
 def get_key(filename):
     with open(filename) as f:
         key = f.read().strip()
     return key
-
-
-
-
-                            
 
 def main():
     # Check if we have an internet connection
@@ -285,11 +200,6 @@ def main():
     leftLight.off()
     rightLight.off()
 
-
-
-
-
-
 if __name__ == "__main__":
     #main()
     camera = Camera("opencv")
@@ -309,11 +219,9 @@ if __name__ == "__main__":
         k = cv2.waitKey(1)
         if k == buttonCapture:
             
-
             oldTime = time.time()
             timeLeft = COUNTDOWN_TIME
-            prev = True
-            while prev:
+            while timeLeft > 0:
                 currentTime = time.time()
 
                 img = camera.capture()
@@ -328,14 +236,7 @@ if __name__ == "__main__":
                     timeLeft -= 1
                     oldTime = time.time()
 
-                # countdown finished
-                if timeLeft < 1:
-                    print("finished preview")
-                    prev = False
-
-
             image = camera.capture()            
-            cv2.imshow('Photobooth', image)
             cv2.imshow('Photobooth', outputDisplay(image))
 
             nxt = False
@@ -353,7 +254,6 @@ if __name__ == "__main__":
 
 
 cv2.waitKey(0)
-
 #camera.release()
 cv2.destroyAllWindows()
 
@@ -518,4 +418,35 @@ def run():
                     nxt = True
         if k == 113:
             break
+"""
+
+
+"""
+def countdown(count):
+    oldtime = time.time()
+    secs = 0
+    while True:
+        currenttime = time.time()
+
+        #print(count)
+        #img = np.zeros((WINDOW_W, WINDOW_H, 3), np.uint8)
+        
+        ret_val, img = camera.read()
+
+        writeTextCentered(img, str(count - secs), FONT_NORMAL, 4, 2, COLOUR_WHITE)
+        cv2.imshow('Photobooth', img)
+        cv2.waitKey(1)
+        img = createFrameBlack()
+
+        print(secs)
+
+        if currenttime - oldtime >= 1:
+            secs += 1
+            oldtime = time.time()
+
+        if secs >= count:
+            ret, frame = camera.read()
+            #frame = cv2.resize(frame, (0,0), fx=0.5, fy=0.5)
+            #frame = cv2.resize(frame, (512, 512)) 
+            return frame
 """
