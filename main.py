@@ -40,6 +40,20 @@ if RASPI:
     camera.rotation = 180
     rawCapture = picamera.array.PiRGBArray(camera, size=(resw,resh))
     time.sleep(1)
+
+    leftButton = Button(4)
+    #leftButton.when_pressed = leftButtonAction
+
+    middleButton = Button(22)
+    #middleButton.when_pressed = middleButtonAction
+
+    rightButton = Button(17)
+    #rightButton.when_pressed = rightButtonAction
+
+    leftLight = LED(19)
+    middleLight = LED(6)
+    rightLight = LED(21)
+
 else:
     camera = cv2.VideoCapture(0)
     camera.set(cv2.CAP_PROP_FRAME_WIDTH, 512)
@@ -57,43 +71,6 @@ conn = cups.Connection()
 printers = conn.getPrinters()
 canonPrinter = list(printers.keys())[0] # 0 for canon, 1 for pdf
 
-"""
-def leftButtonAction():
-    test = 1
-    
-def middleButtonAction():
-    originalFrame = countdown(COUNTDOWN_TIME)
-    
-def rightButtonAction():
-    test = 1
-"""
-if RASPI:
-    leftButton = Button(4)
-    #leftButton.when_pressed = leftButtonAction
-
-    middleButton = Button(22)
-    #middleButton.when_pressed = middleButtonAction
-
-    rightButton = Button(17)
-    #rightButton.when_pressed = rightButtonAction
-
-    leftLight = LED(19)
-    middleLight = LED(6)
-    rightLight = LED(21)
-
-
-def overlayGraphicFrame(frame):
-    overlay = cv2.imread('overlay.png', cv2.IMREAD_UNCHANGED)
-    overlay_transparent(frame, overlay, 30, WINDOW_H - 120)
-
-def overlayPolaroidFrame(frame):
-    top = int(0.05 * frame.shape[0])  # shape[0] = rows
-    bottom = int(0.15 * frame.shape[0])
-    left = int(0.05 * frame.shape[1])  # shape[1] = cols
-    right = left
-    newf = cv2.copyMakeBorder(frame, top, bottom, left, right, cv2.BORDER_CONSTANT, None, COLOUR_WHITE)
-    writeTextCenteredHorizontal(newf, "Rebecca & Harry   Mar Hall   22/09/2019", newf.shape[0] - 30, FONT_ITALIC, STARTOVER_SIZE, STARTOVER_THICKNESS, COLOUR_BLACK)
-    return newf
 
 def createExportDirectory(path):
     if not os.path.exists(path):
@@ -204,60 +181,35 @@ if __name__ == "__main__":
     #main()
     camera = Camera("opencv")
 
-    running = True
-
     buttonCapture = ord('c')
     buttonStartOver = ord('s')
     buttonPrint = ord('p')
 
     print("start")
 
-    while running:
-
+    while True:
         cv2.imshow('Photobooth', startScreen())
 
         k = cv2.waitKey(1)
         if k == buttonCapture:
+            image = countdownDisplay(3, camera)
+            outputDisplay(image)
             
-            oldTime = time.time()
-            timeLeft = COUNTDOWN_TIME
-            while timeLeft > 0:
-                currentTime = time.time()
-
-                img = camera.capture()
-
-                writeTextCentered(img, str(timeLeft), FONT_NORMAL, 4, 2, COLOUR_WHITE)
-                cv2.imshow('Photobooth', img)
-                cv2.waitKey(1)
-
-                # 1 second has passed
-                if currentTime - oldTime >= 1:
-                    print("preview countdown {0}s left".format(str(timeLeft)))
-                    timeLeft -= 1
-                    oldTime = time.time()
-
-            image = camera.capture()            
-            cv2.imshow('Photobooth', outputDisplay(image))
-
-            nxt = False
-            while not nxt:
+            while True:
                 k = cv2.waitKey(1)
                 if k == buttonStartOver:
                     print("startover")
-                    nxt = True
+                    break
                 if k == buttonPrint:
                     print("print")
                     cv2.imshow('Photobooth', printScreen())
                     savePhoto(image)
                     cv2.waitKey(3000)
-                    nxt = True
-
+                    break
 
 cv2.waitKey(0)
 #camera.release()
 cv2.destroyAllWindows()
-
-
 
 
 
@@ -285,13 +237,6 @@ press button
         reset
 
 """
-
-
-
-
-
-
-
 
 
 """
@@ -449,4 +394,15 @@ def countdown(count):
             #frame = cv2.resize(frame, (0,0), fx=0.5, fy=0.5)
             #frame = cv2.resize(frame, (512, 512)) 
             return frame
+"""
+
+"""
+def leftButtonAction():
+    test = 1
+    
+def middleButtonAction():
+    originalFrame = countdown(COUNTDOWN_TIME)
+    
+def rightButtonAction():
+    test = 1
 """
