@@ -1,13 +1,47 @@
 import os
 import cv2
+import datetime
+import socket
 from pydrive.auth import GoogleAuth
 from pydrive.drive import GoogleDrive
-import socket
+from globals import *
 
 # GOOGLE DRIVE
 #gauth = GoogleAuth()
 #gauth.LocalWebserverAuth()
 #drive = GoogleDrive(gauth)
+
+def createExportDirectory(path):
+    if not os.path.exists(path):
+        os.makedirs(path)
+        print("SUCCESS: Created directory '%s'" % path)
+            
+    else:
+        print("INFO: Directory '%s' already exists" % path)
+
+def savePhoto(image):
+    # Save photo locally
+    filename = 'photobooth-{date:%Y-%m-%d_%H_%M_%S}.jpeg'.format(date=datetime.datetime.now())
+    cv2.imwrite(OUTPUT_PATH + filename, image)
+    print("SUCCESS: Saved locally:", filename)
+    
+    """
+    old = time.time()
+    
+    # Save photo to remote backup
+    # todo check if drive object exists
+    uploadThreadOne = threading.Thread(target=backupToGoogleDrive, args=(filename, OUTPUT_PATH, image))
+    uploadThreadOne.start()
+    
+    # TODO PROBABLY DON'T NEED TO WAIT, TAKES ~2SECS, RESEARCH THIS
+    uploadThreadOne.join()
+
+    now = time.time()
+    print("upload took", now - old)
+    """
+
+    # Save photo to external usb drive
+    saveToUSB(filename, image)
 
 def checkUSBConnected():
     if not os.path.exists("/media/pi/2A47-4A89/photobooth/"):
@@ -17,7 +51,6 @@ def checkUSBConnected():
         print("SUCCESS: USB Drive connected.")
         return True
 
-
 def saveToUSB(filename, image):
     path = "/media/pi/2A47-4A89/photobooth/"
     if checkUSBConnected() == True:
@@ -25,7 +58,6 @@ def saveToUSB(filename, image):
         print("SUCCESS: Saved to USB Drive:", filename)
     else:
         print("ERROR: Did not save to USB Drive:", filename) 
-
 
 def CheckInternetConnection(host="8.8.8.8", port=53, timeout=3):
   """
@@ -41,7 +73,6 @@ def CheckInternetConnection(host="8.8.8.8", port=53, timeout=3):
   except socket.error as ex:
     print("ERROR: No internet connection:", ex)
     return False
-
 
 def backupToGoogleDrive(filename, path, photo):
     if CheckInternetConnection():

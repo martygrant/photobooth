@@ -2,7 +2,6 @@ import numpy as np
 import cv2
 import time
 import os
-import datetime
 import threading
 from random import randint
 from copy import deepcopy
@@ -60,49 +59,11 @@ else:
     camera.set(cv2.CAP_PROP_FRAME_HEIGHT, 512)
 
 
-window = cv2.namedWindow("Photobooth", cv2.WINDOW_NORMAL)
-cv2.setWindowProperty('Photobooth', cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
-#cv2.moveWindow("Photobooth", 0, 900)
-
-
-
 # printing
 conn = cups.Connection()
 printers = conn.getPrinters()
 canonPrinter = list(printers.keys())[0] # 0 for canon, 1 for pdf
 
-
-def createExportDirectory(path):
-    if not os.path.exists(path):
-        os.makedirs(path)
-        print("SUCCESS: Created directory '%s'" % path)
-            
-    else:
-        print("INFO: Directory '%s' already exists" % path)
-
-def savePhoto(image):
-    # Save photo locally
-    filename = 'photobooth-{date:%Y-%m-%d_%H_%M_%S}.jpeg'.format(date=datetime.datetime.now())
-    cv2.imwrite(OUTPUT_PATH + filename, image)
-    print("SUCCESS: Saved locally:", filename)
-    
-    """
-    old = time.time()
-    
-    # Save photo to remote backup
-    # todo check if drive object exists
-    uploadThreadOne = threading.Thread(target=backupToGoogleDrive, args=(filename, OUTPUT_PATH, image))
-    uploadThreadOne.start()
-    
-    # TODO PROBABLY DON'T NEED TO WAIT, TAKES ~2SECS, RESEARCH THIS
-    uploadThreadOne.join()
-
-    now = time.time()
-    print("upload took", now - old)
-    """
-
-    # Save photo to external usb drive
-    saveToUSB(filename, image)
 
 def printImage(image):
     screen = createFrameBlack()
@@ -144,10 +105,13 @@ def printImage(image):
             cv2.waitKey(4000)
             break
         
+
+# what is this??? either gdrive or pushover
 def get_key(filename):
     with open(filename) as f:
         key = f.read().strip()
     return key
+
 
 def main():
     # Check if we have an internet connection
@@ -177,8 +141,14 @@ def main():
     leftLight.off()
     rightLight.off()
 
+
 if __name__ == "__main__":
     #main()
+
+    window = cv2.namedWindow("Photobooth", cv2.WINDOW_NORMAL)
+    cv2.setWindowProperty('Photobooth', cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
+    #cv2.moveWindow("Photobooth", 0, 900)
+
     camera = Camera("opencv")
 
     buttonCapture = ord('c')
@@ -203,7 +173,9 @@ if __name__ == "__main__":
                 if k == buttonPrint:
                     print("print")
                     cv2.imshow('Photobooth', printScreen())
-                    savePhoto(image)
+                    #savePhoto(image)
+                    saveThread = threading.Thread(target=savePhoto, args=(image,))
+                    saveThread.start()
                     cv2.waitKey(3000)
                     break
 
