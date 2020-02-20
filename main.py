@@ -145,7 +145,7 @@ def main():
 if __name__ == "__main__":
     #main()
 
-    window = cv2.namedWindow("Photobooth", cv2.WINDOW_NORMAL)
+    cv2.namedWindow("Photobooth", cv2.WINDOW_NORMAL)
     cv2.setWindowProperty('Photobooth', cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
     #cv2.moveWindow("Photobooth", 0, 900)
 
@@ -173,9 +173,8 @@ if __name__ == "__main__":
                 if k == buttonPrint:
                     print("print")
                     cv2.imshow('Photobooth', printScreen())
-                    #savePhoto(image)
                     saveThread = threading.Thread(target=savePhoto, args=(image,))
-                    saveThread.start()
+                    saveThread.start() # python threads kill themselves once completed
                     cv2.waitKey(3000)
                     break
 
