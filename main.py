@@ -106,13 +106,6 @@ def printImage(image):
             break
         
 
-# what is this??? either gdrive or pushover
-def get_key(filename):
-    with open(filename) as f:
-        key = f.read().strip()
-    return key
-
-
 def main():
     # Check if we have an internet connection
     """if CheckInternetConnection() == True:
@@ -140,7 +133,6 @@ def main():
     middleLight.on()
     leftLight.off()
     rightLight.off()
-
 
 if __name__ == "__main__":
     #main()
@@ -182,9 +174,6 @@ cv2.waitKey(0)
 #camera.release()
 cv2.destroyAllWindows()
 
-
-
-
 """
 press button
     flash buttons until button pressed
@@ -208,7 +197,6 @@ press button
         reset
 
 """
-
 
 """
 def countdown(countdown):
@@ -246,7 +234,6 @@ def countdown(countdown):
                 cv2.addWeighted(overlay, alpha, img, 1 - alpha, 0, img)
                 writeTextCenteredHorizontal(img, "Cheese!", 710, FONT_NORMAL, COUNTDOWN_SIZE, COUNTDOWN_THICKNESS+1, COLOUR_WHITE)
 
-
             # display image
             cv2.imshow('Photobooth', img)
             cv2.waitKey(1)
@@ -264,8 +251,6 @@ def countdown(countdown):
             rawCapture.truncate(0)
             return rawCapture.array
 """
-
-
 
 """
 def run():
@@ -289,7 +274,6 @@ def run():
                 print("1 sec and", randrange(10))
                 middleLight.off()
                 old = time.time()
-        
         
         k = cv2.waitKey(1)
         if k == BUTTON_CAPTURE:# or middleButton.is_pressed:        
@@ -334,37 +318,6 @@ def run():
                     nxt = True
         if k == 113:
             break
-"""
-
-
-"""
-def countdown(count):
-    oldtime = time.time()
-    secs = 0
-    while True:
-        currenttime = time.time()
-
-        #print(count)
-        #img = np.zeros((WINDOW_W, WINDOW_H, 3), np.uint8)
-        
-        ret_val, img = camera.read()
-
-        writeTextCentered(img, str(count - secs), FONT_NORMAL, 4, 2, COLOUR_WHITE)
-        cv2.imshow('Photobooth', img)
-        cv2.waitKey(1)
-        img = createFrameBlack()
-
-        print(secs)
-
-        if currenttime - oldtime >= 1:
-            secs += 1
-            oldtime = time.time()
-
-        if secs >= count:
-            ret, frame = camera.read()
-            #frame = cv2.resize(frame, (0,0), fx=0.5, fy=0.5)
-            #frame = cv2.resize(frame, (512, 512)) 
-            return frame
 """
 
 """
