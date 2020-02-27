@@ -125,6 +125,23 @@ def main():
     leftLight.off()
     rightLight.off()
 
+
+def buttonCapture():
+    k = cv2.waitKey(1)
+    return k == ord('c')
+
+def buttonStartOver():
+    k = cv2.waitKey(1)
+    return k == ord('s')
+
+def buttonSave():
+    k = cv2.waitKey(1)
+    return k == ord('p')
+
+def buttonExit():
+    k = cv2.waitKey(1)
+    return k == 27
+
 if __name__ == "__main__":
     #main()
 
@@ -132,26 +149,22 @@ if __name__ == "__main__":
     cv2.setWindowProperty('Photobooth', cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
     #cv2.moveWindow("Photobooth", 0, 900)
 
-    buttonCapture = ord('c')
-    buttonStartOver = ord('s')
-    buttonPrint = ord('p')
-
     print("start")
 
-    while True:
+    running = True
+    
+    while running:
         cv2.imshow('Photobooth', startScreen())
 
-        k = cv2.waitKey(1)
-        if k == buttonCapture:
+        if buttonCapture():
             image = countdownDisplay(3, camera)
             outputDisplay(image)
             
             while True:
-                k = cv2.waitKey(1)
-                if k == buttonStartOver:
+                if buttonStartOver():
                     print("startover")
                     break
-                if k == buttonPrint:
+                if buttonSave():
                     print("print")
                     cv2.imshow('Photobooth', printScreen())
                     saveThread = threading.Thread(target=savePhoto, args=(image,))
@@ -159,10 +172,12 @@ if __name__ == "__main__":
                     cv2.waitKey(3000)
                     break
 
-cv2.waitKey(0)
-#camera.release()
-cv2.destroyAllWindows()
-
+        if buttonExit():
+            running = False
+            
+    camera.__del__
+    cv2.destroyAllWindows()
+    
 """
 press button
     flash buttons until button pressed

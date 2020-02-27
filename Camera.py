@@ -16,3 +16,6 @@ class Camera:
         ret_val, image = self._camera.read()
         return image
         print("capture")    
+
+    def __del__(self): 
+        self._camera.release()
