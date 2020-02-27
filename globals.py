@@ -39,7 +39,6 @@ PRINT_TEXT_THICKNESS = 3
 arrow = cv2.imread('arrow.png', cv2.IMREAD_UNCHANGED)
 arrow = cv2.resize(arrow, None, fx=0.4, fy=0.4)
 
-
 BUTTON_CAPTURE = 98
 BUTTON_STARTOVER = 115
 BUTTON_PRINT = 112
@@ -49,4 +48,4 @@ COLOUR_BLACK = (0, 0, 0)
 
 FONT_NORMAL = cv2.FONT_HERSHEY_SIMPLEX
 FONT_ITALIC = cv2.FONT_HERSHEY_SCRIPT_COMPLEX
-roboto = ImageFont.truetype("Roboto-Regular.ttf", 148)
+roboto_font = ImageFont.truetype("Roboto-Regular.ttf", 148)

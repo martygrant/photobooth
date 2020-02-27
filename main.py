@@ -1,12 +1,8 @@
-import numpy as np
 import cv2
-import time
-import os
 import threading
-from random import randint
-from copy import deepcopy
+from PIL import ImageFont, ImageDraw, Image
+import cups
 import platform
-from random import randrange
 if platform.system() == 'Darwin':
     RASPI = 0
 elif platform.system() == 'Raspberry Pi':
@@ -17,9 +13,7 @@ elif platform.system() == 'Raspberry Pi':
     from gpiozero import Button
     from signal import pause
     from gpiozero import LED
-from time import sleep
-from PIL import ImageFont, ImageDraw, Image
-import cups
+
 from backup import *
 from Camera import *
 from globals import *
@@ -54,10 +48,7 @@ if RASPI:
     rightLight = LED(21)
 
 else:
-    camera = cv2.VideoCapture(0)
-    camera.set(cv2.CAP_PROP_FRAME_WIDTH, 512)
-    camera.set(cv2.CAP_PROP_FRAME_HEIGHT, 512)
-
+    camera = Camera("opencv", 512, 512)
 
 # printing
 conn = cups.Connection()
@@ -87,7 +78,7 @@ def printImage(image):
             cv2_im_rgb = cv2.cvtColor(screen, cv2.COLOR_BGR2RGB)
             pil_im = Image.fromarray(cv2_im_rgb)
             draw = ImageDraw.Draw(pil_im)
-            draw.text((1400/2-100, 900/2), progStr, font=roboto)
+            draw.text((1400/2-100, 900/2), progStr, font=roboto_font)
             screen = cv2.cvtColor(np.array(pil_im), cv2.COLOR_RGB2BGR)
             
             cv2.imshow('Photobooth', screen)
@@ -141,8 +132,6 @@ if __name__ == "__main__":
     cv2.setWindowProperty('Photobooth', cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
     #cv2.moveWindow("Photobooth", 0, 900)
 
-    camera = Camera("opencv")
-
     buttonCapture = ord('c')
     buttonStartOver = ord('s')
     buttonPrint = ord('p')
@@ -166,7 +155,7 @@ if __name__ == "__main__":
                     print("print")
                     cv2.imshow('Photobooth', printScreen())
                     saveThread = threading.Thread(target=savePhoto, args=(image,))
-                    saveThread.start() # python threads kill themselves once completed
+                    saveThread.start() # Spawn new thread to save photo. Python threads kill themselves once completed
                     cv2.waitKey(3000)
                     break
 

@@ -1,7 +1,6 @@
 import numpy as np
 import cv2
 import time
-from copy import deepcopy
 from globals import *
 
 def createFrameBlack():
@@ -91,28 +90,25 @@ def printScreen():
 def outputDisplay(image):
     print("outputDisplay")
 
-    frame = deepcopy(image)
-    frame = cv2.resize(frame, (1440, 900))
+    image = cv2.resize(image, (1440, 900))
     
     x = 0
     y = WINDOW_H - 230
     w = WINDOW_W
     h = 300
 
-    overlay = frame.copy()
-
-    cv2.rectangle(overlay, (x, y), (x+w, y+h), COLOUR_BLACK, -1)
+    cv2.rectangle(image, (x, y), (x+w, y+h), COLOUR_BLACK, -1)
     alpha = 0.6
-    cv2.addWeighted(overlay, alpha, frame, 1 - alpha, 0, frame)
+    cv2.addWeighted(image, alpha, image, 1 - alpha, 0, image)
 
     # write start over and print text
-    writeText(frame, STARTOVER_TEXT, STARTOVER_X, STARTOVER_Y, FONT_NORMAL, STARTOVER_SIZE, STARTOVER_THICKNESS, COLOUR_WHITE)
-    writeText(frame, PRINT_TEXT, PRINT_TEXT_X, PRINT_TEXT_Y, FONT_NORMAL, PRINT_TEXT_SIZE, PRINT_TEXT_THICKNESS, COLOUR_WHITE)
+    writeText(image, STARTOVER_TEXT, STARTOVER_X, STARTOVER_Y, FONT_NORMAL, STARTOVER_SIZE, STARTOVER_THICKNESS, COLOUR_WHITE)
+    writeText(image, PRINT_TEXT, PRINT_TEXT_X, PRINT_TEXT_Y, FONT_NORMAL, PRINT_TEXT_SIZE, PRINT_TEXT_THICKNESS, COLOUR_WHITE)
 
-    overlay_transparent(frame, arrow, STARTOVER_X + 150, STARTOVER_Y + 20)
-    overlay_transparent(frame, arrow, PRINT_TEXT_X + 290, STARTOVER_Y + 20)
+    overlay_transparent(image, arrow, STARTOVER_X + 150, STARTOVER_Y + 20)
+    overlay_transparent(image, arrow, PRINT_TEXT_X + 290, STARTOVER_Y + 20)
 
-    cv2.imshow('Photobooth', frame)
+    cv2.imshow('Photobooth', image)
 
 def countdownDisplay(t, camera):
     print("countdownDisplay")
