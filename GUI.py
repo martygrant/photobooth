@@ -11,7 +11,7 @@ def writeText(frame, text, x, y, font, size, thickness, colour):
 
 def writeTextCentered(frame, text, font, size, thickness, colour):
     textsize = cv2.getTextSize(text, font, size, thickness)[0]
-
+    
     # get coords based on boundary
     textX = (frame.shape[1] - textsize[0]) / 2
     textY = (frame.shape[0] + textsize[1]) / 2
@@ -91,7 +91,7 @@ def outputDisplay(image):
     print("outputDisplay")
 
     image = cv2.resize(image, (1440, 900))
-    
+
     x = 0
     y = WINDOW_H - 230
     w = WINDOW_W
@@ -110,16 +110,25 @@ def outputDisplay(image):
 
     cv2.imshow('Photobooth', image)
 
+def rotate(image):
+    rows, cols = image.shape[0], image.shape[1]
+    mat = cv2.getRotationMatrix2D((cols/2, rows/2), 180, 1)
+    return cv2.warpAffine(image, mat, (cols, rows))
+
 def countdownDisplay(t, camera):
     print("countdownDisplay")
     oldTime = time.time()
     timeLeft = t
     img = 0
-    while timeLeft > 0:
+    #camera.set(1280, 720, 30)
+    time.sleep(1)
+    #while timeLeft > 0:
+    while True:
         currentTime = time.time()
 
         img = camera.capture()
-
+        img = rotate(img)
+        
         writeTextCentered(img, str(timeLeft), FONT_NORMAL, 4, 2, COLOUR_WHITE)
         cv2.imshow('Photobooth', img)
         cv2.waitKey(1)
@@ -130,5 +139,8 @@ def countdownDisplay(t, camera):
             timeLeft -= 1
             oldTime = time.time()
 
-    img = camera.capture()
-    return img
+        if timeLeft < 1:
+            #camera.set(2592, 1728, 15)
+            img = camera.capture()
+            img = rotate(img)
+            return img

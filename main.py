@@ -3,9 +3,12 @@ import threading
 from PIL import ImageFont, ImageDraw, Image
 import cups
 import platform
+import subprocess
 if platform.system() == 'Darwin':
     RASPI = 0
-elif platform.system() == 'Raspberry Pi':
+RASPI = 1
+"""
+elif platform.system() == 'Linux': #pi
     RASPI = 1
     import picamera.array
     import picamera
@@ -13,42 +16,21 @@ elif platform.system() == 'Raspberry Pi':
     from gpiozero import Button
     from signal import pause
     from gpiozero import LED
-
+"""
 from backup import *
 from Camera import *
 from globals import *
 from GUI import *
 
+# make sure camera is enabled on pi
+subprocess.call(["sudo", "modprobe",  "bcm2835-v4l2"])
 
 if RASPI:
-    camera = picamera.PiCamera()#sensor_mode=2)
-    resw = 3280
-    resh = 2464
-    camera.resolution = (resw,resh)
-    camera.framerate = 15
-    camera.brightness = 55
-    #camera.contrast = 8
-    #camera.video_stabilization = True
-    #camera.exposure_mode = 'auto'
-    camera.rotation = 180
-    rawCapture = picamera.array.PiRGBArray(camera, size=(resw,resh))
-    time.sleep(1)
-
-    leftButton = Button(4)
-    #leftButton.when_pressed = leftButtonAction
-
-    middleButton = Button(22)
-    #middleButton.when_pressed = middleButtonAction
-
-    rightButton = Button(17)
-    #rightButton.when_pressed = rightButtonAction
-
-    leftLight = LED(19)
-    middleLight = LED(6)
-    rightLight = LED(21)
-
+    print("camera backend picam")
+    camera = Camera(Backend.PICAM, 2592, 1728, 30, 55)
 else:
-    camera = Camera("opencv", 512, 512)
+    print("camera backend opencv")
+    camera = Camera(Backend.OPENCV, 2592, 1728, 30, 60) # 2592x1728 is a 3:2 aspect ratio which is best for 4x6 print
 
 # printing
 conn = cups.Connection()
@@ -126,22 +108,6 @@ def main():
     rightLight.off()
 
 
-def buttonCapture():
-    k = cv2.waitKey(1)
-    return k == ord('c')
-
-def buttonStartOver():
-    k = cv2.waitKey(1)
-    return k == ord('s')
-
-def buttonSave():
-    k = cv2.waitKey(1)
-    return k == ord('p')
-
-def buttonExit():
-    k = cv2.waitKey(1)
-    return k == 27
-
 if __name__ == "__main__":
     #main()
 
@@ -156,15 +122,17 @@ if __name__ == "__main__":
     while running:
         cv2.imshow('Photobooth', startScreen())
 
-        if buttonCapture():
-            image = countdownDisplay(3, camera)
+        k = cv2.waitKey(1)
+        if k == ord('c'):
+            image = countdownDisplay(COUNTDOWN_TIME, camera)
             outputDisplay(image)
             
             while True:
-                if buttonStartOver():
+                k = cv2.waitKey(1)
+                if k == ord('s'):
                     print("startover")
                     break
-                if buttonSave():
+                if k == ord('p'):
                     print("print")
                     cv2.imshow('Photobooth', printScreen())
                     saveThread = threading.Thread(target=savePhoto, args=(image,))
@@ -172,10 +140,10 @@ if __name__ == "__main__":
                     cv2.waitKey(3000)
                     break
 
-        if buttonExit():
+        if k == 27: # escape key
             running = False
             
-    camera.__del__
+    #camera.__del__
     cv2.destroyAllWindows()
     
 """
@@ -211,7 +179,6 @@ def countdown(countdown):
 
     while True:
         currenttime = time.time()
-        #print(dir(camera))
 
         if currenttime - oldtime >= 1 or firstRun == True:
             countdown -= 1
