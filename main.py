@@ -2,13 +2,10 @@ import cv2
 import threading
 from PIL import ImageFont, ImageDraw, Image
 import cups
-import platform
+import os
 import subprocess
-if platform.system() == 'Darwin':
-    RASPI = 0
-RASPI = 1
-"""
-elif platform.system() == 'Linux': #pi
+RASPI = 0
+if os.uname().nodename == "raspberrypi":
     RASPI = 1
     import picamera.array
     import picamera
@@ -16,7 +13,6 @@ elif platform.system() == 'Linux': #pi
     from gpiozero import Button
     from signal import pause
     from gpiozero import LED
-"""
 from backup import *
 from Camera import *
 from globals import *
@@ -25,7 +21,7 @@ from GUI import *
 # make sure camera is enabled on pi
 subprocess.call(["sudo", "modprobe",  "bcm2835-v4l2"])
 
-if RASPI:
+if RASPI == 1:
     print("camera backend picam")
     camera = Camera(Backend.PICAM, 2592, 1728, 30, 55)
 else:

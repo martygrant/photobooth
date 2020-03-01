@@ -1,6 +1,8 @@
 import cv2
-import picamera.array # todo check system type
-import picamera
+import os
+if os.uname().nodename == "raspberrypi":
+    import picamera.array
+    import picamera
 import time
 from enum import Enum
 
@@ -19,13 +21,13 @@ class Camera:
             self._camera.set(cv2.CAP_PROP_BRIGHTNESS, brightness / 100)
         if self._backend == Backend.PICAM:
             self._camera = picamera.PiCamera()#sensor_mode=2)
-            self._camera.resolution = (width,height)
+            self._camera.resolution = (width, height)
             self._camera.framerate = fps
             self._camera.brightness = brightness
             #camera.contrast = 8
-            #camera.video_stabilization = True
+            #self._camera.video_stabilization = True
             #camera.exposure_mode = 'auto'
-            #camera.rotation = 180
+            self._camera.rotation = 180
             self._rawCapture = picamera.array.PiRGBArray(self._camera, size=(width,height))
             time.sleep(1)
 
