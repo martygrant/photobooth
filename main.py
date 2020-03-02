@@ -2,31 +2,17 @@ import cv2
 import threading
 from PIL import ImageFont, ImageDraw, Image
 import cups
-import os
-import subprocess
-RASPI = 0
-if os.uname().nodename == "raspberrypi":
-    RASPI = 1
-    import picamera.array
-    import picamera
-    from pushover import *
-    from gpiozero import Button
-    from signal import pause
-    from gpiozero import LED
+import picamera.array
+import picamera
+from pushover import *
+from gpiozero import Button
+from signal import pause
+from gpiozero import LED
 from backup import *
 from Camera import *
 from globals import *
 from GUI import *
 
-# make sure camera is enabled on pi
-subprocess.call(["sudo", "modprobe",  "bcm2835-v4l2"])
-
-if RASPI == 1:
-    print("camera backend picam")
-    camera = Camera(Backend.PICAM, 2592, 1728, 30, 55)
-else:
-    print("camera backend opencv")
-    camera = Camera(Backend.OPENCV, 2592, 1728, 30, 60) # 2592x1728 is a 3:2 aspect ratio which is best for 4x6 print
 
 # printing
 conn = cups.Connection()
@@ -113,6 +99,8 @@ if __name__ == "__main__":
 
     print("start")
 
+    camera = Camera(1440, 900, 2592, 1728, 30, 55, 180, 72)
+
     running = True
     
     while running:
@@ -122,7 +110,7 @@ if __name__ == "__main__":
         if k == ord('c'):
             image = countdownDisplay(COUNTDOWN_TIME, camera)
             outputDisplay(image)
-            
+
             while True:
                 k = cv2.waitKey(1)
                 if k == ord('s'):

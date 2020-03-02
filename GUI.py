@@ -110,6 +110,14 @@ def outputDisplay(image):
 
     cv2.imshow('Photobooth', image)
 
+def smileScreen():
+    print("smile screen")
+
+    image = createFrameBlack()
+
+    writeTextCentered(image, "SMILE!", FONT_NORMAL, STARTOVER_SIZE, STARTOVER_THICKNESS, COLOUR_WHITE)
+    cv2.imshow('Photobooth', image)
+
 def rotate(image):
     rows, cols = image.shape[0], image.shape[1]
     mat = cv2.getRotationMatrix2D((cols/2, rows/2), 180, 1)
@@ -119,17 +127,12 @@ def countdownDisplay(t, camera):
     print("countdownDisplay")
     oldTime = time.time()
     timeLeft = t
-    img = 0
-    #camera.set(1024, 768, 60)
-    #time.sleep(1)
+    camera.startPreview()
+    
     while True:
         currentTime = time.time()
 
-        img = camera.capture()
-        img = rotate(img)
-        writeTextCentered(img, str(timeLeft), FONT_NORMAL, 4, 2, COLOUR_WHITE)
-        cv2.imshow('Photobooth', img)
-        cv2.waitKey(1)
+        camera.setText(str(timeLeft))
 
         # 1 second has passed
         if currentTime - oldTime >= 1:
@@ -138,8 +141,7 @@ def countdownDisplay(t, camera):
             oldTime = time.time()
 
         if timeLeft < 1:
-            #camera.set(2592, 1728, 15)
-            #time.sleep(0.5)
-            img = camera.capture()
-            img = rotate(img)
-            return img
+            smileScreen()
+            cv2.waitKey(1)
+            camera.stopPreview()
+            return camera.capture()
