@@ -123,25 +123,21 @@ def rotate(image):
     mat = cv2.getRotationMatrix2D((cols/2, rows/2), 180, 1)
     return cv2.warpAffine(image, mat, (cols, rows))
 
-def countdownDisplay(t, camera):
+def countdownDisplay(countDown, camera):
     print("countdownDisplay")
     oldTime = time.time()
-    timeLeft = t
     camera.startPreview()
-    
     while True:
         currentTime = time.time()
 
-        camera.setText(str(timeLeft))
+        camera.setText(str(countDown))
 
         # 1 second has passed
         if currentTime - oldTime >= 1:
-            print("preview countdown {0}s left".format(str(timeLeft)))
-            timeLeft -= 1
+            print("preview countdown {0}s left".format(str(countDown)))
+            countDown -= 1
             oldTime = time.time()
 
-        if timeLeft < 1:
-            smileScreen()
-            cv2.waitKey(1)
+        if countDown < 1:
             camera.stopPreview()
             return camera.capture()

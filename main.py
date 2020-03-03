@@ -95,8 +95,7 @@ if __name__ == "__main__":
 
     cv2.namedWindow("Photobooth", cv2.WINDOW_NORMAL)
     cv2.setWindowProperty('Photobooth', cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
-    #cv2.moveWindow("Photobooth", 0, 900)
-
+    
     print("start")
 
     camera = Camera(1440, 900, 2592, 1728, 30, 55, 180, 72)
@@ -107,16 +106,19 @@ if __name__ == "__main__":
         cv2.imshow('Photobooth', startScreen())
 
         k = cv2.waitKey(1)
-        if k == ord('c'):
+        if k == BUTTON_CAPTURE:
+            smileScreen()
+            cv2.waitKey(1)
+            
             image = countdownDisplay(COUNTDOWN_TIME, camera)
             outputDisplay(image)
 
             while True:
                 k = cv2.waitKey(1)
-                if k == ord('s'):
+                if k == BUTTON_STARTOVER:
                     print("startover")
                     break
-                if k == ord('p'):
+                if k == BUTTON_PRINT:
                     print("print")
                     cv2.imshow('Photobooth', printScreen())
                     saveThread = threading.Thread(target=savePhoto, args=(image,))
@@ -124,7 +126,7 @@ if __name__ == "__main__":
                     cv2.waitKey(3000)
                     break
 
-        if k == 27: # escape key
+        if k == BUTTON_EXIT:
             running = False
             
     #camera.__del__

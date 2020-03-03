@@ -39,9 +39,10 @@ PRINT_TEXT_THICKNESS = 3
 arrow = cv2.imread('arrow.png', cv2.IMREAD_UNCHANGED)
 arrow = cv2.resize(arrow, None, fx=0.4, fy=0.4)
 
-BUTTON_CAPTURE = 98
-BUTTON_STARTOVER = 115
-BUTTON_PRINT = 112
+BUTTON_CAPTURE = ord('c')
+BUTTON_STARTOVER = ord('s')
+BUTTON_PRINT = ord('p')
+BUTTON_EXIT = ord('q')
 
 COLOUR_WHITE = (255, 255, 255)
 COLOUR_BLACK = (0, 0, 0)
