@@ -89,6 +89,10 @@ def main():
     leftLight.off()
     rightLight.off()
 
+def savePhoto2(image):
+    img = overlayPolaroidFrame(image)
+    cv2.imwrite("stylised.jpg", img)
+
 
 if __name__ == "__main__":
     #main()
@@ -98,7 +102,7 @@ if __name__ == "__main__":
     
     print("start")
 
-    camera = Camera(1440, 900, 2592, 1728, 30, 55, 180, 72)
+    camera = Camera(WINDOW_W, WINDOW_H, CAPTURE_RES_W, CAPTURE_RES_H, 30, 55, 180, 96)
 
     running = True
     
@@ -121,9 +125,10 @@ if __name__ == "__main__":
                 if k == BUTTON_PRINT:
                     print("print")
                     cv2.imshow('Photobooth', printScreen())
-                    saveThread = threading.Thread(target=savePhoto, args=(image,))
-                    saveThread.start() # Spawn new thread to save photo. Python threads kill themselves once completed
-                    cv2.waitKey(3000)
+                    #saveThread = threading.Thread(target=savePhoto, args=(image,))
+                    #saveThread.start() # Spawn new thread to save photo. Python threads kill themselves once completed
+                    #cv2.waitKey(3000)
+                    savePhoto2(image)
                     break
 
         if k == BUTTON_EXIT:

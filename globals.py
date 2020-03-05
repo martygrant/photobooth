@@ -5,8 +5,11 @@ from PIL import ImageFont, ImageDraw, Image
 WINDOW_W = 1440
 WINDOW_H = 900
 
+# capture and print resolution (match with aspect ratio of print, using 3:2 for 6x4 print)
+CAPTURE_RES_W = 2592
+CAPTURE_RES_H = 1728
+
 OUTPUT_PATH = str(os.getcwd()) + "/photos/"
-OUTPUT_STYLE = 0 # 0 = POLAROID, 1 = OVERLAY GRAPHIC
 
 COUNTDOWN_TIME = 5
 COUNTDOWN_SIZE = 6
@@ -50,3 +53,5 @@ COLOUR_BLACK = (0, 0, 0)
 FONT_NORMAL = cv2.FONT_HERSHEY_SIMPLEX
 FONT_ITALIC = cv2.FONT_HERSHEY_SCRIPT_COMPLEX
 roboto_font = ImageFont.truetype("Roboto-Regular.ttf", 148)
+
+POLAROID_TEXT = "Laura & Martin Crossbasket Castle 25/07/2020"

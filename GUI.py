@@ -6,6 +6,11 @@ from globals import *
 def createFrameBlack():
     return np.zeros((WINDOW_H, WINDOW_W, 3), np.uint8)
 
+def createFrameWhite():
+    frame = np.zeros((1728, 2592, 3), np.uint8)
+    frame.fill(255)
+    return frame
+
 def writeText(frame, text, x, y, font, size, thickness, colour):
     cv2.putText(frame, text, (int(x), int(y)), font, size, colour, thickness, cv2.LINE_AA)
 
@@ -58,18 +63,28 @@ def overlay_transparent(background, overlay, x, y):
 
     background[y:y+h, x:x+w] = (1.0 - mask) * background[y:y+h, x:x+w] + mask * overlay_image
 
-def overlayGraphicFrame(frame):
-    overlay = cv2.imread('overlay.png', cv2.IMREAD_UNCHANGED)
-    overlay_transparent(frame, overlay, 30, WINDOW_H - 120)
+def addPolaroidBorder(image):
+    # scale image down proportionally
+    image = cv2.resize(image, (0, 0), fx=0.95, fy=0.95)
 
-def overlayPolaroidFrame(frame):
-    top = int(0.05 * frame.shape[0])  # shape[0] = rows
-    bottom = int(0.15 * frame.shape[0])
-    left = int(0.05 * frame.shape[1])  # shape[1] = cols
-    right = left
-    newf = cv2.copyMakeBorder(frame, top, bottom, left, right, cv2.BORDER_CONSTANT, None, COLOUR_WHITE)
-    writeTextCenteredHorizontal(newf, "Rebecca & Harry   Mar Hall   22/09/2019", newf.shape[0] - 30, FONT_ITALIC, STARTOVER_SIZE, STARTOVER_THICKNESS, COLOUR_BLACK)
-    return newf
+    # place the image against a larger white image so it has white borders
+    polaroidFrame = createFrameWhite()
+    polaroidFrameCols = polaroidFrame.shape[1]
+    polaroidFrameRows = polaroidFrame.shape[0]
+    imageCols = image.shape[1]
+    imageRows = image.shape[0]
+    xoffset = (polaroidFrameCols - imageCols) / 2
+    yoffset = (polaroidFrameRows - imageRows) / 2
+    polaroidFrame[yoffset:yoffset+imageRows, xoffset:xoffset+imageCols] = image
+
+    # make the height of the top border the same width as the left/right borders
+    polaroidFrame[0:xoffset] = 255
+
+    # make the bottom border larger (2x width of left/right border)
+    polaroidFrame[polaroidFrameRows-(xoffset*2):polaroidFrameRows] = 255
+    
+    return polaroidFrame
+    
 
 def startScreen():
     pressButtonFrame = createFrameBlack()
