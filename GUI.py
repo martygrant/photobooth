@@ -3,10 +3,10 @@ import cv2
 import time
 from globals import *
 
-def createFrameBlack():
+def createFrameBlack(w, h):
     return np.zeros((WINDOW_H, WINDOW_W, 3), np.uint8)
 
-def createFrameWhite():
+def createFrameWhite(w, h):
     frame = np.zeros((1728, 2592, 3), np.uint8)
     frame.fill(255)
     return frame
@@ -68,7 +68,7 @@ def addPolaroidBorder(image):
     image = cv2.resize(image, (0, 0), fx=0.95, fy=0.95)
 
     # place the image against a larger white image so it has white borders
-    polaroidFrame = createFrameWhite()
+    polaroidFrame = createFrameWhite(CAPTURE_W, CAPTURE_H)
     polaroidFrameCols = polaroidFrame.shape[1]
     polaroidFrameRows = polaroidFrame.shape[0]
     imageCols = image.shape[1]
@@ -87,7 +87,7 @@ def addPolaroidBorder(image):
     
 
 def startScreen():
-    pressButtonFrame = createFrameBlack()
+    pressButtonFrame = createFrameBlack(WINDOW_W, WINDOW_H)
     
     writeTextCenteredHorizontal(pressButtonFrame, CAPTURE_TEXT, CAPTURE_Y - 50, FONT_NORMAL, CAPTURE_SIZE, CAPTURE_THICKNESS, COLOUR_WHITE)
     writeTextCenteredHorizontal(pressButtonFrame, CAPTURE_TEXT2, CAPTURE_Y + 70, FONT_NORMAL, CAPTURE_SIZE, CAPTURE_THICKNESS, COLOUR_WHITE)
@@ -96,7 +96,7 @@ def startScreen():
     return pressButtonFrame
 
 def printScreen():
-    printScreenFrame = createFrameBlack()
+    printScreenFrame = createFrameBlack(WINDOW_W, WINDOW_H)
     
     writeTextCenteredHorizontal(printScreenFrame, "Printing...", 200, FONT_NORMAL, CAPTURE_SIZE, CAPTURE_THICKNESS, COLOUR_WHITE)
 
@@ -128,15 +128,10 @@ def outputDisplay(image):
 def smileScreen():
     print("smile screen")
 
-    image = createFrameBlack()
+    image = createFrameBlack(WINDOW_W, WINDOW_H)
 
     writeTextCentered(image, "SMILE!", FONT_NORMAL, STARTOVER_SIZE, STARTOVER_THICKNESS, COLOUR_WHITE)
     cv2.imshow('Photobooth', image)
-
-def rotate(image):
-    rows, cols = image.shape[0], image.shape[1]
-    mat = cv2.getRotationMatrix2D((cols/2, rows/2), 180, 1)
-    return cv2.warpAffine(image, mat, (cols, rows))
 
 def countdownDisplay(countDown, camera):
     print("countdownDisplay")

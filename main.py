@@ -102,7 +102,7 @@ if __name__ == "__main__":
     
     print("start")
 
-    camera = Camera(WINDOW_W, WINDOW_H, CAPTURE_RES_W, CAPTURE_RES_H, 30, 55, 180, 96)
+    camera = Camera(WINDOW_W, WINDOW_H, CAPTURE_W, CAPTURE_H, 30, 55, 180, 96)
 
     running = True
     
