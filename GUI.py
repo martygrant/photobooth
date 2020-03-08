@@ -82,6 +82,8 @@ def addPolaroidBorder(image):
 
     # make the bottom border larger (2x width of left/right border)
     polaroidFrame[polaroidFrameRows-(xoffset*2):polaroidFrameRows] = 255
+
+    writeTextCenteredHorizontal(polaroidFrame, POLAROID_TEXT, CAPTURE_H - 30 , FONT_ITALIC, 3, 2, COLOUR_BLACK)
     
     return polaroidFrame
     

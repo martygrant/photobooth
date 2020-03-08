@@ -24,10 +24,11 @@ def savePhoto(image):
     filename = 'photobooth-{date:%Y-%m-%d_%H_%M_%S}.jpeg'.format(date=datetime.datetime.now())
     cv2.imwrite(OUTPUT_PATH + filename, image)
     print("SUCCESS: Saved locally:", filename)
+
+    # Save photo to external usb drive
+    saveToUSB(filename, image)
     
     """
-    old = time.time()
-    
     # Save photo to remote backup
     # todo check if drive object exists
     uploadThreadOne = threading.Thread(target=backupToGoogleDrive, args=(filename, OUTPUT_PATH, image))
@@ -35,13 +36,9 @@ def savePhoto(image):
     
     # TODO PROBABLY DON'T NEED TO WAIT, TAKES ~2SECS, RESEARCH THIS
     uploadThreadOne.join()
-
-    now = time.time()
-    print("upload took", now - old)
     """
 
-    # Save photo to external usb drive
-    saveToUSB(filename, image)
+    
 
 def checkUSBConnected():
     if not os.path.exists("/media/pi/2A47-4A89/photobooth/"):
