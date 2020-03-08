@@ -2,9 +2,11 @@ import os
 import cv2
 import datetime
 import socket
+import threading
 from pydrive.auth import GoogleAuth
 from pydrive.drive import GoogleDrive
 from globals import *
+from GUI import *
 
 # GOOGLE DRIVE
 #gauth = GoogleAuth()
@@ -14,14 +16,21 @@ from globals import *
 def createExportDirectory(path):
     if not os.path.exists(path):
         os.makedirs(path)
-        print("SUCCESS: Created directory '%s'" % path)
-            
+        print("SUCCESS: Created directory '%s'" % path)            
     else:
         print("INFO: Directory '%s' already exists" % path)
 
-def savePhoto(image):
+def save(image):
+    saveOriginalThread = threading.Thread(target=savePhoto, args=(image, "original"))
+    saveOriginalThread.start() # Spawn new thread to save photo. Python threads kill themselves once completed
+    if POLAROID_STYLE == True:
+        polaroid = addPolaroidBorder(image)
+        savePolaroidThread = threading.Thread(target=savePhoto, args=(polaroid, "polaroid"))
+        savePolaroidThread.start()
+
+def savePhoto(image, name):
     # Save photo locally
-    filename = 'photobooth-{date:%Y-%m-%d_%H_%M_%S}.jpeg'.format(date=datetime.datetime.now())
+    filename = 'photobooth_{0}-{date:%Y-%m-%d_%H_%M_%S}.jpeg'.format(name, date=datetime.datetime.now())
     cv2.imwrite(OUTPUT_PATH + filename, image)
     print("SUCCESS: Saved locally:", filename)
 
@@ -37,8 +46,6 @@ def savePhoto(image):
     # TODO PROBABLY DON'T NEED TO WAIT, TAKES ~2SECS, RESEARCH THIS
     uploadThreadOne.join()
     """
-
-    
 
 def checkUSBConnected():
     if not os.path.exists("/media/pi/2A47-4A89/photobooth/"):

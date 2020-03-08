@@ -54,4 +54,5 @@ FONT_NORMAL = cv2.FONT_HERSHEY_SIMPLEX
 FONT_ITALIC = cv2.FONT_HERSHEY_SCRIPT_COMPLEX
 roboto_font = ImageFont.truetype("Roboto-Regular.ttf", 148)
 
+POLAROID_STYLE = True
 POLAROID_TEXT = "Laura & Martin Crossbasket Castle 25/07/2020"

@@ -1,5 +1,4 @@
 import cv2
-import threading
 from PIL import ImageFont, ImageDraw, Image
 import cups
 import picamera.array
@@ -89,10 +88,6 @@ def main():
     leftLight.off()
     rightLight.off()
 
-def savePhoto2(image):
-    img = addPolaroidBorder(image)
-    cv2.imwrite("stylised.jpg", img)
-
 
 if __name__ == "__main__":
     #main()
@@ -125,10 +120,10 @@ if __name__ == "__main__":
                 if k == BUTTON_PRINT:
                     print("print")
                     cv2.imshow('Photobooth', printScreen())
-                    #saveThread = threading.Thread(target=savePhoto, args=(image,))
-                    #saveThread.start() # Spawn new thread to save photo. Python threads kill themselves once completed
-                    #cv2.waitKey(3000)
-                    savePhoto2(image)
+
+                    save(image)
+                    
+                    cv2.waitKey(3000)
                     break
 
         if k == BUTTON_EXIT:
@@ -159,59 +154,6 @@ press button
             reset
         reset
 
-"""
-
-"""
-def countdown(countdown):
-    oldtime = time.time()
-    
-    img = None
-    firstRun = True
-
-    while True:
-        currenttime = time.time()
-
-        if currenttime - oldtime >= 1 or firstRun == True:
-            countdown -= 1
-            oldtime = time.time()
-            print(countdown)
-
-            # get image from camera
-            camera.capture(rawCapture, 'bgr')#, use_video_port=False)
-            img = rawCapture.array
-
-            # make preview fit window
-            img = cv2.resize(img, (1440, 900))
-
-            # write countdown on image
-            overlay = img.copy()
-            if countdown != 0:
-                cv2.rectangle(overlay, (620, 550), (820, 750), COLOUR_BLACK, -1)
-                alpha = 0.3
-                cv2.addWeighted(overlay, alpha, img, 1 - alpha, 0, img)
-                writeTextCenteredHorizontal(img, str(countdown), 710, FONT_NORMAL, COUNTDOWN_SIZE, COUNTDOWN_THICKNESS, COLOUR_WHITE)
-            else:
-                cv2.rectangle(overlay, (320, 550), (1120, 750), COLOUR_BLACK, -1)
-                alpha = 0.3
-                cv2.addWeighted(overlay, alpha, img, 1 - alpha, 0, img)
-                writeTextCenteredHorizontal(img, "Cheese!", 710, FONT_NORMAL, COUNTDOWN_SIZE, COUNTDOWN_THICKNESS+1, COLOUR_WHITE)
-
-            # display image
-            cv2.imshow('Photobooth', img)
-            cv2.waitKey(1)
-
-            # reset camera
-            rawCapture.seek(0)
-            rawCapture.truncate(0)
-
-            if firstRun == True:
-                firstRun = False
-
-        if countdown < 1:     
-            camera.capture(rawCapture, 'bgr', use_video_port=False)
-            rawCapture.seek(0)
-            rawCapture.truncate(0)
-            return rawCapture.array
 """
 
 """
