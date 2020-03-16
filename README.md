@@ -3,20 +3,23 @@
 This repo is for a Raspberry Pi powered photobooth for parties and events. The code here can be run on a Raspberry Pi connected to a camera, some buttons and a printer to build a fun photobooth that lets people capture and print photos without any assistance.
 
 # todo
-* add versions to software below
 * add section for setting up google drive, notification service, CUPS
 * add links to original inspiration projects, tutorial articles etc
 * add hardware setup section with wiring etc.
 
 ## Requirements
 ### Software
-* python3
-* CUPS
-* pyCUPS
-* PiCam
-* OpenCV
+* python3 (tested on 3.4.2)
+* CUPS (1.7.5+)
+* pycups (1.9.74) 
+* picamera (1.10)
+* OpenCV (3.4.3)
+* PiDrive (1.3.1)
+* numpy (1.8.2)
+* gpiozero (1.4.0)
+
 ### Hardware
-* Raspberry Pi (I'm using 3b)
+* Raspberry Pi (I'm using 3b running Jessie (4.9.35-v7+)
 * Raspberry Pi Camera v2 (or similar)
 * Your own selections of a monitor, buttons, lights, printer etc. 
 
