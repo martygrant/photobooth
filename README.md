@@ -4,7 +4,6 @@ This repo is for a Raspberry Pi powered photobooth for parties and events. The c
 
 # todo
 * add section for setting up google drive, notification service, CUPS
-* add links to original inspiration projects, tutorial articles etc
 * add hardware setup section with wiring etc.
 
 ## Requirements
@@ -22,6 +21,13 @@ This repo is for a Raspberry Pi powered photobooth for parties and events. The c
 * Raspberry Pi (I'm using 3b running Jessie (4.9.35-v7+)
 * Raspberry Pi Camera v2 (or similar)
 * Your own selections of a monitor, buttons, lights, printer etc. 
+
+## Useful tutorials and links used for building this project
+* https://www.hackster.io/sabat54i/wedding-photo-booth-with-raspberry-pi-1cea3a
+* https://www.hackster.io/ericBcreator/photo-booth-powered-by-a-raspberry-pi-23b491
+* https://www.instructables.com/id/Raspberry-Pi-photo-booth-controller/
+* https://gpiozero.readthedocs.io/en/stable/recipes.html#button
+* https://dordnung.de/raspberrypi-ledstrip/
 
 ## Image resolution and printing
 The Raspberry Pi camera is capable of a number of different resolutions. Your will probably want to setup your photobooth to print 6x4 photos so you should choose a resolution with the same aspect ratio (3:2). A smaller resolution is used during the countdown preview so it can maintain a high frame rate.
