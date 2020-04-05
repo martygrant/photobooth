@@ -1,6 +1,7 @@
 import numpy as np
 import cv2
 import time
+from PIL import ImageFont, ImageDraw, Image
 from globals import *
 
 def createFrameBlack(w, h):
@@ -97,12 +98,6 @@ def startScreen():
     
     return pressButtonFrame
 
-def printScreen():
-    printScreenFrame = createFrameBlack(WINDOW_W, WINDOW_H)
-    
-    writeTextCenteredHorizontal(printScreenFrame, "Printing...", 200, FONT_NORMAL, CAPTURE_SIZE, CAPTURE_THICKNESS, COLOUR_WHITE)
-
-    return printScreenFrame
 
 def outputDisplay(image):
     print("outputDisplay")
@@ -127,6 +122,7 @@ def outputDisplay(image):
 
     cv2.imshow('Photobooth', image)
 
+
 def smileScreen():
     print("smile screen")
 
@@ -134,6 +130,26 @@ def smileScreen():
 
     writeTextCentered(image, "SMILE!", FONT_NORMAL, STARTOVER_SIZE, STARTOVER_THICKNESS, COLOUR_WHITE)
     cv2.imshow('Photobooth', image)
+
+
+def printScreen(progress):
+    screen = createFrameBlack(WINDOW_W, WINDOW_H)
+
+    # todo remove hardcoded text positions
+
+    writeTextCenteredHorizontal(screen, "Printing your photo...", 900/2 - 200, FONT_NORMAL, 4, 4, COLOUR_WHITE)    
+
+    # Draw the progress with a better font
+    cv2_im_rgb = cv2.cvtColor(screen, cv2.COLOR_BGR2RGB)
+    pil_im = Image.fromarray(cv2_im_rgb)
+    draw = ImageDraw.Draw(pil_im)
+    draw.text((1400/2-100, 900/2 - 50), progress, font=roboto_font)
+    screen = cv2.cvtColor(np.array(pil_im), cv2.COLOR_RGB2BGR)
+
+    writeTextCenteredHorizontal(screen, "Collect below!", 900/2 + 300, FONT_NORMAL, 4, 4, COLOUR_WHITE)    
+
+    return screen
+
 
 def countdownDisplay(countDown, camera):
     print("countdownDisplay")

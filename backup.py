@@ -20,32 +20,40 @@ def createExportDirectory(path):
     else:
         print("INFO: Directory '%s' already exists" % path)
 
-def save(image):
-    saveOriginalThread = threading.Thread(target=savePhoto, args=(image, "original"))
-    saveOriginalThread.start() # Spawn new thread to save photo. Python threads kill themselves once completed
-    if POLAROID_STYLE == True:
-        polaroid = addPolaroidBorder(image)
-        savePolaroidThread = threading.Thread(target=savePhoto, args=(polaroid, "polaroid"))
-        savePolaroidThread.start()
+def saveImage(image):
+    datetimeStr = "{date:%Y-%m-%d_%H_%M_%S}".format(date=datetime.datetime.now())
 
-def savePhoto(image, name):
+    originalFilename = "photobooth_original-{0}.jpg".format(datetimeStr)
+
     # Save photo locally
-    filename = 'photobooth_{0}-{date:%Y-%m-%d_%H_%M_%S}.jpeg'.format(name, date=datetime.datetime.now())
-    cv2.imwrite(OUTPUT_PATH + filename, image)
-    print("SUCCESS: Saved locally:", filename)
+    if cv2.imwrite(OUTPUT_PATH + originalFilename, image):
+        print("SUCCESS: Saved locally:", originalFilename)
 
     # Save photo to external usb drive
-    saveToUSB(filename, image)
-    
-    """
+    saveToUSB(originalFilename, image)
+
     # Save photo to remote backup
     # todo check if drive object exists
-    uploadThreadOne = threading.Thread(target=backupToGoogleDrive, args=(filename, OUTPUT_PATH, image))
-    uploadThreadOne.start()
+    saveOriginalThread = threading.Thread(target=backupToGoogleDrive, args=(originalFilename, OUTPUT_PATH, image))
+    saveOriginalThread.start() # Spawn new thread to save photo. Python threads kill themselves once completed
     
-    # TODO PROBABLY DON'T NEED TO WAIT, TAKES ~2SECS, RESEARCH THIS
-    uploadThreadOne.join()
-    """
+    if POLAROID_STYLE == True:
+        polaroidFilename = "photobooth_polaroid-{0}.jpg".format(datetimeStr)
+        polaroid = addPolaroidBorder(image)
+
+        if cv2.imwrite(OUTPUT_PATH + polaroidFilename, image):
+            print("SUCCESS: Saved locally:", polaroidFilename)
+
+        saveToUSB(polaroidFilename, image)
+
+        savePolaroidThread = threading.Thread(target=backupToGoogleDrive, args=(polaroidFilename, OUTPUT_PATH, polaroid))
+        savePolaroidThread.start()
+        cv2.imwrite(OUTPUT_PATH + polaroidFilename, polaroid)
+        return polaroidFilename
+
+    # Return from here to print original print or return earlier with polaroid print if enabled
+    return originalFilename
+
 
 def checkUSBConnected():
     if not os.path.exists("/media/pi/2A47-4A89/photobooth/"):
@@ -83,7 +91,6 @@ def backupToGoogleDrive(filename, path, photo):
         http = drive.auth.Get_Http_Object()
         
         folder_id = "1U1aCTd_K84IdQQ9_z1UUkZt7EbEk9_qT"
-        #file1 = drive.CreateFile({'title': 'photobooth/Hello.txt'})  # Create GoogleDriveFile instance with title 'Hello.txt'.
         driveFile = drive.CreateFile({"parents": [{"kind": "drive#fileLink", "id": folder_id}], "title": filename})
 
         driveFile.SetContentFile(path + filename)
