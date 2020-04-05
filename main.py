@@ -82,8 +82,8 @@ if __name__ == "__main__":
 
         if k == BUTTON_EXIT:
             running = False
-            
-    #camera.__del__
+
+    camera.close()
     cv2.destroyAllWindows()
     
 """

@@ -9,9 +9,9 @@ from globals import *
 from GUI import *
 
 # GOOGLE DRIVE
-#gauth = GoogleAuth()
-#gauth.LocalWebserverAuth()
-#drive = GoogleDrive(gauth)
+gauth = GoogleAuth()
+gauth.LocalWebserverAuth()
+drive = GoogleDrive(gauth)
 
 def createExportDirectory(path):
     if not os.path.exists(path):
@@ -44,7 +44,7 @@ def saveImage(image):
         if cv2.imwrite(OUTPUT_PATH + polaroidFilename, image):
             print("SUCCESS: Saved locally:", polaroidFilename)
 
-        saveToUSB(polaroidFilename, image)
+        saveToUSB(polaroidFilename, polaroid)
 
         savePolaroidThread = threading.Thread(target=backupToGoogleDrive, args=(polaroidFilename, OUTPUT_PATH, polaroid))
         savePolaroidThread.start()
@@ -55,8 +55,8 @@ def saveImage(image):
     return originalFilename
 
 
-def checkUSBConnected():
-    if not os.path.exists("/media/pi/2A47-4A89/photobooth/"):
+def checkUSBConnected(path):
+    if not os.path.exists(path):
         print("ERROR: USB Drive not found.")
         return False
     else:
@@ -64,9 +64,8 @@ def checkUSBConnected():
         return True
 
 def saveToUSB(filename, image):
-    path = "/media/pi/2A47-4A89/photobooth/"
-    if checkUSBConnected() == True:
-        cv2.imwrite(path + filename, image)
+    if checkUSBConnected(USB_DRIVE_PATH) == True:
+        cv2.imwrite(USB_DRIVE_PATH + filename, image)
         print("SUCCESS: Saved to USB Drive:", filename)
     else:
         print("ERROR: Did not save to USB Drive:", filename) 
@@ -90,8 +89,7 @@ def backupToGoogleDrive(filename, path, photo):
     if CheckInternetConnection():
         http = drive.auth.Get_Http_Object()
         
-        folder_id = "1U1aCTd_K84IdQQ9_z1UUkZt7EbEk9_qT"
-        driveFile = drive.CreateFile({"parents": [{"kind": "drive#fileLink", "id": folder_id}], "title": filename})
+        driveFile = drive.CreateFile({"parents": [{"kind": "drive#fileLink", "id": GDRIVE_FOLDER_ID}], "title": filename})
 
         driveFile.SetContentFile(path + filename)
         #file1.SetContentString('Hello World!') # Set content of the file from given string.

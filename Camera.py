@@ -54,8 +54,8 @@ class Camera:
         
         return img
          
-    #def __del__(self): 
-        #self._camera.release() # todo clean up
+    def close(self): 
+        self._camera.close()
 
 
 """ Old OpenCV camera code
