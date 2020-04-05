@@ -11,6 +11,7 @@ from Camera import *
 from globals import *
 from GUI import *
 from cupsprint import *
+import os
 
 def main():
     # Check if we have an internet connection

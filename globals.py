@@ -40,7 +40,6 @@ PRINT_TEXT_SIZE = 3
 PRINT_TEXT_THICKNESS = 3
 
 arrow = cv2.imread('arrow.png', cv2.IMREAD_UNCHANGED)
-arrow = cv2.resize(arrow, None, fx=0.4, fy=0.4)
 
 BUTTON_CAPTURE = ord('c')
 BUTTON_STARTOVER = ord('s')
