@@ -78,7 +78,7 @@ if __name__ == "__main__":
                     filename += saveImage(image)
                     printImage(filename);
                     
-                    cv2.waitKey(3000)
+                    cv2.waitKey(2000)
                     break
 
         if k == BUTTON_EXIT:

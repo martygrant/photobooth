@@ -6,7 +6,7 @@ from GUI import *
 def printImage(filename):
     conn = cups.Connection()
     printers = conn.getPrinters()
-    printer = list(printers.keys())[0]
+    printer = list(printers.keys())[1]
     print("Using printer '{0}'".format(printer))
 
     job = conn.printFile(printer, filename, "", {}) # can specify print options here

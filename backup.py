@@ -41,14 +41,13 @@ def saveImage(image):
         polaroidFilename = "photobooth_polaroid-{0}.jpg".format(datetimeStr)
         polaroid = addPolaroidBorder(image)
 
-        if cv2.imwrite(OUTPUT_PATH + polaroidFilename, image):
+        if cv2.imwrite(OUTPUT_PATH + polaroidFilename, polaroid):
             print("SUCCESS: Saved locally:", polaroidFilename)
 
         saveToUSB(polaroidFilename, polaroid)
 
         savePolaroidThread = threading.Thread(target=backupToGoogleDrive, args=(polaroidFilename, OUTPUT_PATH, polaroid))
         savePolaroidThread.start()
-        cv2.imwrite(OUTPUT_PATH + polaroidFilename, polaroid)
         return polaroidFilename
 
     # Return from here to print original print or return earlier with polaroid print if enabled
@@ -92,7 +91,6 @@ def backupToGoogleDrive(filename, path, photo):
         driveFile = drive.CreateFile({"parents": [{"kind": "drive#fileLink", "id": GDRIVE_FOLDER_ID}], "title": filename})
 
         driveFile.SetContentFile(path + filename)
-        #file1.SetContentString('Hello World!') # Set content of the file from given string.
         driveFile.Upload(param={"http": http})
             
         print("SUCCESS: Uploaded to GDrive:", filename)
