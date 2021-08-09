@@ -6,6 +6,7 @@ import time
 import datetime
 import os
 from enum import Enum
+from gpiozero import LED
 
 SCREEN_W = 600
 SCREEN_H = 600
@@ -21,6 +22,7 @@ screen = pygame.display.set_mode((SCREEN_W, SCREEN_H))
 pygame.display.set_caption("Photobooth v2")
 GAME_FONT = pygame.freetype.Font("Castoro-Regular.ttf", 24)
 
+PATH = "photos/"
 
 class PhotoboothState(Enum):
     CAPTURE = 0
@@ -28,47 +30,39 @@ class PhotoboothState(Enum):
     DISPLAY = 2
     PRINT = 4
 
+state = PhotoboothState.CAPTURE
+
 inputCapture = False
 inputReset = False
 inputPrint = False
 
-state = PhotoboothState.CAPTURE
+countDown = 5
+oldTime = time.time()
 
 cameraFrame = 0
 cameraFrameSurface = pygame.Surface((FRAME_W, FRAME_H))
 
-countDown = 5
-oldTime = time.time()
+# Inputs - Photobooth buttons (and LEDs) and keyboard
+capturePB = -1
+captureLED = LED(6)
+captureKB = pygame.K_c
 
-"""
-class Camera:
-    def __init__(self, width, height, fps, brightness):
-        self._backend = backend
-        if self._backend == Backend.OPENCV:
-            self._camera = cv2.VideoCapture(0)
-            self._camera.set(cv2.CAP_PROP_FRAME_WIDTH, width)
-            self._camera.set(cv2.CAP_PROP_FRAME_HEIGHT, height)
-            self._camera.set(cv2.CAP_PROP_FPS, fps)
-            self._camera.set(cv2.CAP_PROP_BRIGHTNESS, brightness / 100)
-    def capture(self):
-        ret_val, image = self._camera.read()
-        return image
-    def __del__(self): 
-        self._camera.release()
-"""
+resetPB = -1
+resetLED = LED(19)
+resetKB = pygame.K_r
 
-camera = cv2.VideoCapture(0)
-camera.set(cv2.CAP_PROP_FRAME_WIDTH, CAPTURE_W)
-camera.set(cv2.CAP_PROP_FRAME_HEIGHT, CAPTURE_H)
-#camera.set(cv2.CAP_PROP_FPS, 60)
-#camera.set(cv2.CAP_PROP_BRIGHTNESS, 1)
+printPB = -1
+printLED = LED(21)
+printKB = pygame.K_p
 
-PATH = "photos/"
+quitKB = pygame.K_ESCAPE
+
+
 
 def createLocalDirectory(path):
     if not os.path.exists(path):
         os.makedirs(path)
-        print("SUCCESS: Created directory '%s'" % path)            
+        print("INFO: Created directory '%s'" % path)            
     else:
         print("INFO: Directory '%s' already exists" % path)
 
@@ -79,9 +73,9 @@ def savePhotoLocal(photo):
 
     # Save photo locally
     if cv2.imwrite(PATH + originalFilename, photo):
-        print("SUCCESS: Saved locally:", originalFilename)
+        print("INFO: Saved locally:", originalFilename)
     else:
-        print("FAILURE: Did not save:", originalFilename)
+        print("ERROR: Did not save:", originalFilename)
 
 def savePhotoExternal(photo):
     print("savePhotoExternal")
@@ -94,28 +88,26 @@ def savePhotoOnline(photo):
 
 def printPhoto(photo, saveLocal, saveExternal, saveOnline):
     print("printPhoto")
-    
-    photo=cv2.cvtColor(photo, cv2.COLOR_BGR2RGB)
-    
+
     if saveLocal == True:
         savePhotoLocal(photo)
-
+    """
     if saveExternal == True:
         savePhotoExternal(photo)
 
     if saveOnline == True:
         savePhotoOnline(photo)
-
+    """
 
 
 def getCamFrame(color, camera):
     global cameraFrame
     retval,frame=camera.read()
-    frame=cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+    frame=cv2.cvtColor(frame,cv2.COLOR_BGR2RGB)
     if not color:
-        frame=cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-        frame=cv2.cvtColor(frame, cv2.COLOR_GRAY2RGB)
-    frame=np.rot90(frame, -1)
+        frame=cv2.cvtColor(frame,cv2.COLOR_BGR2GRAY)
+        frame=cv2.cvtColor(frame,cv2.COLOR_GRAY2RGB)
+    frame=np.rot90(frame)
     frame = cv2.resize(frame, (FRAME_W, FRAME_H))
     cameraFrame = frame
     frame=pygame.surfarray.make_surface(frame)
@@ -134,6 +126,12 @@ def renderText(string, x, y):
     text_surface, rect = GAME_FONT.render(string, (0, 0, 0))
     screen.blit(text_surface, (x, y))
 
+def switchState(newState):
+    global state
+    oldState = state
+    state = newState
+    print("INFO: Switching state FROM {0} to {1}.".format(oldState, newState))
+
 
 def countdownDisplay():
     currentTime = time.time()
@@ -143,7 +141,7 @@ def countdownDisplay():
 
     # 1 second has passed
     if currentTime - oldTime >= 1:
-        print("preview countdown {0}s left".format(str(countDown)))
+        print("INFO: Capturing photo - {0}s left".format(str(countDown)))
         countDown -= 1
         oldTime = time.time()
 
@@ -163,13 +161,13 @@ def events():
         if event.type == pygame.QUIT:
             return False
         if event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_ESCAPE:
+            if event.key == quitKB:
                 return False
-            elif event.key == pygame.K_c:
+            elif event.key == captureKB:
                 inputCapture = True
-            elif event.key == pygame.K_r:
+            elif event.key == resetKB:
                 inputReset = True
-            elif event.key == pygame.K_p:
+            elif event.key == printKB:
                 inputPrint = True
             #else:
 
@@ -179,31 +177,45 @@ def events():
 
 def update():
     global cameraFrameSurface
-    global state
     global oldTime
 
     if state == PhotoboothState.CAPTURE:
-        cameraFrameSurface = getCamFrame(True, camera)
+        #cameraFrameSurface = getCamFrame(True, camera)
+        
+        captureLED.on()
+        resetLED.off()
+        printLED.off()
+
         if inputCapture == True:
             oldTime = time.time()
-            state = PhotoboothState.COUNTDOWN
+            switchState(PhotoboothState.COUNTDOWN)
 
     elif state == PhotoboothState.COUNTDOWN:
-        cameraFrameSurface = getCamFrame(True, camera)
+        #cameraFrameSurface = getCamFrame(True, camera)
+
+        captureLED.off()
+        resetLED.off()
+        printLED.off()
+
         if countdownDisplay() < 1:
             global countDown
             countDown = 5
-            state = PhotoboothState.DISPLAY 
+            switchState(PhotoboothState.DISPLAY)
 
     elif state == PhotoboothState.DISPLAY:
+
+        captureLED.off()
+        resetLED.on()
+        printLED.on()
+
         if inputReset == True:
-            state = PhotoboothState.CAPTURE
+            switchState(PhotoboothState.CAPTURE)
         elif inputPrint == True:
-            state = PhotoboothState.PRINT
+            switchState(PhotoboothState.PRINT)
 
     elif state == PhotoboothState.PRINT:
         printPhoto(cameraFrame, True, True, True)
-        state = PhotoboothState.CAPTURE
+        switchState(PhotoboothState.CAPTURE)
 
     else:
         print("blah")
@@ -254,6 +266,7 @@ todo:
 - print
 - notifications?
 - logging
+- try new camera?
 """
 
 
@@ -271,7 +284,7 @@ def main():
         update()
         render(screen)
     
-    camera.release()
+    #camera.release()
     pygame.quit()
 
 if __name__ == "__main__":
