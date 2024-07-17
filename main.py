@@ -49,7 +49,7 @@ if __name__ == "__main__":
     cv2.setWindowProperty('Photobooth', cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
     
     print("start")
-
+    # todo set a countdown param?
     camera = Camera(WINDOW_W, WINDOW_H, CAPTURE_W, CAPTURE_H, 30, 55, 180, 120)
 
     running = True
@@ -62,7 +62,7 @@ if __name__ == "__main__":
             smileScreen()
             cv2.waitKey(1)
             
-            image = countdownDisplay(COUNTDOWN_TIME, camera)
+            image = camera.countdownCapture()
             outputDisplay(image)
 
             while True:

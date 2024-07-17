@@ -149,23 +149,3 @@ def printScreen(progress):
     writeTextCenteredHorizontal(screen, "Collect below!", 900/2 + 300, FONT_NORMAL, 4, 4, COLOUR_WHITE)    
 
     return screen
-
-
-def countdownDisplay(countDown, camera):
-    print("countdownDisplay")
-    oldTime = time.time()
-    camera.startPreview()
-    while True:
-        currentTime = time.time()
-
-        camera.setText(str(countDown))
-
-        # 1 second has passed
-        if currentTime - oldTime >= 1:
-            print("preview countdown {0}s left".format(str(countDown)))
-            countDown -= 1
-            oldTime = time.time()
-
-        if countDown < 1:
-            camera.stopPreview()
-            return camera.capture()
