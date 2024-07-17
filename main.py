@@ -30,7 +30,7 @@ def main():
     """
 
     createExportDirectory(OUTPUT_PATH)
-    CheckInternetConnection()
+    #CheckInternetConnection()
     checkUSBConnected()
 
     run()
@@ -76,9 +76,12 @@ if __name__ == "__main__":
                     # Save photo and send to printer
                     filename = "photos/"
                     filename += saveImage(image)
-                    printImage(filename);
+                    printImage(filename)
                     
                     cv2.waitKey(2000)
+                    break
+                if k == BUTTON_EXIT:
+                    running = False
                     break
 
         if k == BUTTON_EXIT:

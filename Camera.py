@@ -45,7 +45,7 @@ class Camera:
         time.sleep(1) # allow some time for the camera to calibrate
 
         # take the image
-        self._camera.capture(self._rawCapture, 'rgb', use_video_port=False)
+        self._camera.capture(self._rawCapture, 'bgr', use_video_port=False)
         img = self._rawCapture.array
         
         # close and re-open the camera with the preview resolution

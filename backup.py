@@ -3,15 +3,15 @@ import cv2
 import datetime
 import socket
 import threading
-from pydrive.auth import GoogleAuth
-from pydrive.drive import GoogleDrive
+#from pydrive.auth import GoogleAuth
+#from pydrive.drive import GoogleDrive
 from globals import *
 from GUI import *
 
 # GOOGLE DRIVE
-gauth = GoogleAuth()
-gauth.LocalWebserverAuth()
-drive = GoogleDrive(gauth)
+#gauth = GoogleAuth()
+#gauth.LocalWebserverAuth()
+#drive = GoogleDrive(gauth)
 
 def createExportDirectory(path):
     if not os.path.exists(path):
@@ -34,7 +34,7 @@ def saveImage(image):
 
     # Save photo to remote backup
     # todo check if drive object exists
-    saveOriginalThread = threading.Thread(target=backupToGoogleDrive, args=(originalFilename, OUTPUT_PATH, image))
+    #saveOriginalThread = threading.Thread(target=backupToGoogleDrive, args=(originalFilename, OUTPUT_PATH, image))
     saveOriginalThread.start() # Spawn new thread to save photo. Python threads kill themselves once completed
     
     if POLAROID_STYLE == True:
@@ -46,7 +46,7 @@ def saveImage(image):
 
         saveToUSB(polaroidFilename, polaroid)
 
-        savePolaroidThread = threading.Thread(target=backupToGoogleDrive, args=(polaroidFilename, OUTPUT_PATH, polaroid))
+        #savePolaroidThread = threading.Thread(target=backupToGoogleDrive, args=(polaroidFilename, OUTPUT_PATH, polaroid))
         savePolaroidThread.start()
         return polaroidFilename
 
