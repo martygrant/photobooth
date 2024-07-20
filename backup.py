@@ -27,7 +27,7 @@ def saveImage(image):
 
     # Save photo locally
     if cv2.imwrite(OUTPUT_PATH + originalFilename, image):
-        print("SUCCESS: Saved locally:", originalFilename)
+        print("SUCCESS: Saved original locally:", originalFilename)
 
     # Save photo to external usb drive
     saveToUSB(originalFilename, image)
@@ -35,19 +35,19 @@ def saveImage(image):
     # Save photo to remote backup
     # todo check if drive object exists
     #saveOriginalThread = threading.Thread(target=backupToGoogleDrive, args=(originalFilename, OUTPUT_PATH, image))
-    saveOriginalThread.start() # Spawn new thread to save photo. Python threads kill themselves once completed
+    #saveOriginalThread.start() # Spawn new thread to save photo. Python threads kill themselves once completed
     
     if POLAROID_STYLE == True:
         polaroidFilename = "photobooth_polaroid-{0}.jpg".format(datetimeStr)
         polaroid = addPolaroidBorder(image)
 
         if cv2.imwrite(OUTPUT_PATH + polaroidFilename, polaroid):
-            print("SUCCESS: Saved locally:", polaroidFilename)
+            print("SUCCESS: Saved polaroid locally:", polaroidFilename)
 
         saveToUSB(polaroidFilename, polaroid)
 
         #savePolaroidThread = threading.Thread(target=backupToGoogleDrive, args=(polaroidFilename, OUTPUT_PATH, polaroid))
-        savePolaroidThread.start()
+        #savePolaroidThread.start()
         return polaroidFilename
 
     # Return from here to print original print or return earlier with polaroid print if enabled

@@ -1,7 +1,6 @@
 import numpy as np
 import cv2
-import time
-from PIL import ImageFont, ImageDraw, Image
+from PIL import ImageDraw, Image
 from globals import *
 
 def createFrame(w, h, colour):
@@ -72,8 +71,8 @@ def addPolaroidBorder(image):
     polaroidFrameRows = polaroidFrame.shape[0]
     imageCols = image.shape[1]
     imageRows = image.shape[0]
-    xoffset = (polaroidFrameCols - imageCols) / 2
-    yoffset = (polaroidFrameRows - imageRows) / 2
+    xoffset = int((polaroidFrameCols - imageCols) / 2)
+    yoffset = int((polaroidFrameRows - imageRows) / 2)
     polaroidFrame[yoffset:yoffset+imageRows, xoffset:xoffset+imageCols] = image
 
     # make the height of the top border the same width as the left/right borders

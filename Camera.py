@@ -1,7 +1,7 @@
 import picamera.array
 import picamera
 import time
-from PIL import ImageFont, ImageDraw, Image
+from PIL import Image
 
 class Camera:
     def __init__(self, previewWidth, previewHeight, captureWidth, captureHeight, frameRate, brightness, rotation, textSize):
@@ -88,6 +88,8 @@ class Camera:
         # take the image
         self._camera.capture(self._rawCapture, 'bgr', use_video_port=False)
         img = self._rawCapture.array
+        # todo can the above be simplified?
+        # todo do a second capture with resize param as its more efficient than resizing with opencv later for display
         
         # close and re-open the camera with the preview resolution
         self._camera.close()
@@ -97,24 +99,3 @@ class Camera:
          
     def close(self): 
         self._camera.close()
-
-""" Old OpenCV camera code
-# make sure camera is enabled on pi
-#subprocess.call(["sudo", "modprobe",  "bcm2835-v4l2"])
-class Camera:
-    def __init__(self, width, height, fps, brightness):
-        self._backend = backend
-        if self._backend == Backend.OPENCV:
-            self._camera = cv2.VideoCapture(0)
-            self._camera.set(cv2.CAP_PROP_FRAME_WIDTH, width)
-            self._camera.set(cv2.CAP_PROP_FRAME_HEIGHT, height)
-            self._camera.set(cv2.CAP_PROP_FPS, fps)
-            self._camera.set(cv2.CAP_PROP_BRIGHTNESS, brightness / 100)
-
-    def capture(self):
-        ret_val, image = self._camera.read()
-        return image
-
-    def __del__(self): 
-        self._camera.release()
-"""        
