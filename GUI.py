@@ -4,12 +4,10 @@ import time
 from PIL import ImageFont, ImageDraw, Image
 from globals import *
 
-def createFrameBlack(w, h):
-    return np.zeros((WINDOW_H, WINDOW_W, 3), np.uint8)
-
-def createFrameWhite(w, h):
-    frame = np.zeros((1728, 2592, 3), np.uint8)
-    frame.fill(255)
+def createFrame(w, h, colour):
+    frame = np.zeros((h, w, 3), np.uint8)
+    if colour != 0:
+        frame.fill(colour)
     return frame
 
 def writeText(frame, text, x, y, font, size, thickness, colour):
@@ -69,7 +67,7 @@ def addPolaroidBorder(image):
     image = cv2.resize(image, (0, 0), fx=0.95, fy=0.95)
 
     # place the image against a larger white image so it has white borders
-    polaroidFrame = createFrameWhite(CAPTURE_W, CAPTURE_H)
+    polaroidFrame = createFrame(CAPTURE_W, CAPTURE_H, 255)
     polaroidFrameCols = polaroidFrame.shape[1]
     polaroidFrameRows = polaroidFrame.shape[0]
     imageCols = image.shape[1]
@@ -89,7 +87,7 @@ def addPolaroidBorder(image):
     return polaroidFrame
     
 def startScreen():
-    pressButtonFrame = createFrameBlack(WINDOW_W, WINDOW_H)
+    pressButtonFrame = createFrame(WINDOW_W, WINDOW_H, 0)
     
     writeTextCenteredHorizontal(pressButtonFrame, CAPTURE_TEXT, CAPTURE_Y - 50, FONT_NORMAL, CAPTURE_SIZE, CAPTURE_THICKNESS, COLOUR_WHITE)
     writeTextCenteredHorizontal(pressButtonFrame, CAPTURE_TEXT2, CAPTURE_Y + 70, FONT_NORMAL, CAPTURE_SIZE, CAPTURE_THICKNESS, COLOUR_WHITE)
@@ -122,13 +120,13 @@ def outputDisplay(image):
 def smileScreen():
     print("smile screen")
 
-    image = createFrameBlack(WINDOW_W, WINDOW_H)
+    image = createFrame(WINDOW_W, WINDOW_H, 0)
 
-    writeTextCentered(image, SMILE_TEXT, FONT_NORMAL, SMILE_TEXT_SIZE, SMILE_TEXT_THICKNESS, COLOUR_WHITE)
+    writeTextCentered(image, SMILE_TEXT, FONT_NORMAL, SMILE_TEXT_SIZE, SMILE_TEXT_THICKNESS, COLOUR_BLACK)
     cv2.imshow('Photobooth', image)
 
 def printScreen(progress):
-    screen = createFrameBlack(WINDOW_W, WINDOW_H)
+    screen = createFrame(WINDOW_W, WINDOW_H, 0)
 
     # todo remove hardcoded text positions
 
