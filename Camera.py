@@ -16,7 +16,8 @@ class Camera:
 
         self.setupCamera(self._previewWidth, self._previewHeight, self._frameRate, self._brightness, self._rotation, self._textSize)
 
-        self.countdown_images = ['countdown_images/5.png', 'countdown_images/4.png', 'countdown_images/3.png', 'countdown_images/2.png', 'countdown_images/1.png']
+        #self.countdown_images = ['countdown_images/5.png', 'countdown_images/4.png', 'countdown_images/3.png', 'countdown_images/2.png', 'countdown_images/1.png']
+        self.countdown_images = ['countdown_images/3.png', 'countdown_images/2.png', 'countdown_images/1.png']
 
     def addoverlay(self, image_path):
         img = Image.open(image_path)

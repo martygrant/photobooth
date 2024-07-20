@@ -21,7 +21,7 @@ def printImage(filename):
             print("Printing {0} (job {1}) progress: {2}".format(filename, job, progStr))
 
             screen = printScreen(progStr)
-            cv2.imshow('Photobooth', screen)
+            renderFrame(screen)
             cv2.waitKey(1000)
             
         else:

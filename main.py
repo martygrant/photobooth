@@ -4,8 +4,9 @@ import picamera.array
 import picamera
 from pushover import *
 from gpiozero import Button
-from signal import pause
+from gpiozero import PWMLED
 from gpiozero import LED
+from signal import pause
 from backup import *
 from Camera import *
 from globals import *
@@ -45,6 +46,17 @@ def main():
 if __name__ == "__main__":
     #main()
 
+
+    left = PWMLED(26)
+    left.pulse()
+
+    right = PWMLED(21)
+    right.pulse()
+
+    mid = LED(6)
+    mid.blink()
+
+
     cv2.namedWindow("Photobooth", cv2.WINDOW_NORMAL)
     cv2.setWindowProperty('Photobooth', cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
     
@@ -55,15 +67,24 @@ if __name__ == "__main__":
     running = True
     
     while running:
-        cv2.imshow('Photobooth', startScreen())
+        startScreen()
 
         k = cv2.waitKey(1)
         if k == BUTTON_CAPTURE:
             smileScreen()
-            cv2.waitKey(1)
+            cv2.waitKey(1) # buttons can be pressed here and progress the state
+            # toodo need to configure physical buttons
             
+            mid.off()
+            left.off()
+            right.off()
+
             image = camera.countdownCapture()
-            outputDisplay(image)
+            outputScreen(image)
+
+            mid.off()
+            left.blink()
+            right.blink()
 
             while True:
                 k = cv2.waitKey(1)
