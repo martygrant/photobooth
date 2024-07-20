@@ -88,16 +88,13 @@ def addPolaroidBorder(image):
     
     return polaroidFrame
     
-
 def startScreen():
     pressButtonFrame = createFrameBlack(WINDOW_W, WINDOW_H)
     
     writeTextCenteredHorizontal(pressButtonFrame, CAPTURE_TEXT, CAPTURE_Y - 50, FONT_NORMAL, CAPTURE_SIZE, CAPTURE_THICKNESS, COLOUR_WHITE)
     writeTextCenteredHorizontal(pressButtonFrame, CAPTURE_TEXT2, CAPTURE_Y + 70, FONT_NORMAL, CAPTURE_SIZE, CAPTURE_THICKNESS, COLOUR_WHITE)
-    writeTextCenteredHorizontal(pressButtonFrame, CAPTURE_TEXT3, CAPTURE_Y + 300, FONT_NORMAL, 2.5, CAPTURE_THICKNESS, COLOUR_WHITE)
     
     return pressButtonFrame
-
 
 def outputDisplay(image):
     print("outputDisplay")
@@ -122,15 +119,13 @@ def outputDisplay(image):
 
     cv2.imshow('Photobooth', image)
 
-
 def smileScreen():
     print("smile screen")
 
     image = createFrameBlack(WINDOW_W, WINDOW_H)
 
-    writeTextCentered(image, "SMILE!", FONT_NORMAL, STARTOVER_SIZE, STARTOVER_THICKNESS, COLOUR_WHITE)
+    writeTextCentered(image, SMILE_TEXT, FONT_NORMAL, SMILE_TEXT_SIZE, SMILE_TEXT_THICKNESS, COLOUR_WHITE)
     cv2.imshow('Photobooth', image)
-
 
 def printScreen(progress):
     screen = createFrameBlack(WINDOW_W, WINDOW_H)

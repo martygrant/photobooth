@@ -1,9 +1,9 @@
 from signal import pause
 from gpiozero import Button
 
-left = Button(4)
-mid = Button(22)
-right = Button(17)
+mid = Button(5)
+left = Button(17)
+right = Button(22)
 
 def btn1():
     print("left")

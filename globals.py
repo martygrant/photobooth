@@ -21,7 +21,6 @@ COUNTDOWN_OVERLAY_H = COUNTDOWN_OVERLAY_Y + 200
 
 CAPTURE_TEXT = "Press the middle button"
 CAPTURE_TEXT2 = "below to take a photo!"
-CAPTURE_TEXT3 = "You have " + str(COUNTDOWN_TIME) + " seconds to pose!"
 CAPTURE_X = (WINDOW_W / 2) - 50
 CAPTURE_Y = (WINDOW_H / 2) 
 CAPTURE_SIZE = 3.5
@@ -38,6 +37,10 @@ PRINT_TEXT_X = WINDOW_W - 600
 PRINT_TEXT_Y = WINDOW_H - 130
 PRINT_TEXT_SIZE = 3
 PRINT_TEXT_THICKNESS = 3
+
+SMILE_TEXT = "SMILE! :)"
+SMILE_TEXT_SIZE = 6
+SMILE_TEXT_THICKNESS = 3
 
 arrow = cv2.imread('arrow.png', cv2.IMREAD_UNCHANGED)
 
