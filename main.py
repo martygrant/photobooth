@@ -1,6 +1,4 @@
 import cv2
-import cups
-import picamera.array
 import picamera
 from pushover import *
 from gpiozero import Button
@@ -12,50 +10,24 @@ from Camera import *
 from globals import *
 from GUI import *
 from cupsprint import *
-import os
 
-def main():
-    # Check if we have an internet connection
-    """if CheckInternetConnection() == True:
-    
-        # Create a local export directory
-        createExportDirectory(OUTPUT_PATH)
+if __name__ == "__main__":
+    leftLED = PWMLED(26)
+    leftLED.pulse()
 
-        checkUSBConnected()
-        
-        run()
+    rightLED = PWMLED(21)
+    rightLED.pulse()
 
-    else:
-        run()
-        print("not connected")
-    """
+    midLED = LED(6)
+    midLED.blink()
+
+    leftButton = Button(17)
+    midButton = Button(5)
+    rightButton = Button(22)
 
     createExportDirectory(OUTPUT_PATH)
     #CheckInternetConnection()
-    checkUSBConnected()
-
-    run()
-    
-    camera.close()
-    
-    middleLight.on()
-    leftLight.off()
-    rightLight.off()
-
-
-if __name__ == "__main__":
-    #main()
-
-
-    left = PWMLED(26)
-    left.pulse()
-
-    right = PWMLED(21)
-    right.pulse()
-
-    mid = LED(6)
-    mid.blink()
-
+    checkUSBConnected(USB_DRIVE_PATH)
 
     cv2.namedWindow("Photobooth", cv2.WINDOW_NORMAL)
     cv2.setWindowProperty('Photobooth', cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
@@ -70,34 +42,34 @@ if __name__ == "__main__":
         startScreen()
 
         k = cv2.waitKey(1)
-        if k == BUTTON_CAPTURE:
+        if k == BUTTON_CAPTURE or midButton.is_pressed:
             smileScreen()
-            cv2.waitKey(1) # buttons can be pressed here and progress the state
-            # toodo need to configure physical buttons
+            cv2.waitKey(1) # keyboard buttons can be pressed more than once and affect the state
+            # would be good to add a listener function to buttons
             
-            mid.off()
-            left.off()
-            right.off()
+            midLED.off()
+            leftLED.off()
+            rightLED.off()
 
             image = camera.countdownCapture()
             outputScreen(image)
 
-            mid.off()
-            left.blink()
-            right.blink()
+            midLED.off()
+            leftLED.blink()
+            rightLED.blink()
 
             while True:
                 k = cv2.waitKey(1)
-                if k == BUTTON_STARTOVER:
+                if k == BUTTON_STARTOVER or leftButton.is_pressed:
                     print("startover")
                     break
-                if k == BUTTON_PRINT:
+                if k == BUTTON_PRINT or rightButton.is_pressed:
                     print("print")
 
                     # Save photo and send to printer
                     filename = "photos/"
                     filename += saveImage(image)
-                    printImage(filename)
+                    #printImage(filename)
                     
                     cv2.waitKey(2000)
                     break
@@ -110,15 +82,3 @@ if __name__ == "__main__":
 
     camera.close()
     cv2.destroyAllWindows()
-
-
-"""
-def leftButtonAction():
-    test = 1
-    
-def middleButtonAction():
-    originalFrame = countdown(COUNTDOWN_TIME)
-    
-def rightButtonAction():
-    test = 1
-"""
