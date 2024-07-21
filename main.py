@@ -11,15 +11,34 @@ from globals import *
 from GUI import *
 from cupsprint import *
 
+
+
+# todo 
+# read docs on camera specific settings i.e. white balance etc
+# turnoff screensaver
+# maybe have a gap between countdown overlays
+# maybe add all countdown overlays at start and just swap layers during countdown
+# print countdown timing?
+# "smile" appears for a sec between screens
+# handle ink/paper errors
+# print a page explaining loading paper
+# turn off automatic paper type register on printer
+# try gdrive again and see if auth problem happens again
+# configure light patterns
+# there is a blur around photos, try to reposition camera
+# capture banner has no alpha on monitor?
+# gif during countdown?
+
+
 if __name__ == "__main__":
     leftLED = PWMLED(26)
-    leftLED.pulse()
+    #leftLED.pulse()
 
     rightLED = PWMLED(21)
-    rightLED.pulse()
+    #rightLED.pulse()
 
-    midLED = LED(6)
-    midLED.blink()
+    midLED = PWMLED(6)
+    midLED.pulse()
 
     leftButton = Button(17)
     midButton = Button(5)
@@ -62,6 +81,7 @@ if __name__ == "__main__":
                 k = cv2.waitKey(1)
                 if k == BUTTON_STARTOVER or leftButton.is_pressed:
                     print("startover")
+                    midLED.pulse()
                     break
                 if k == BUTTON_PRINT or rightButton.is_pressed:
                     print("print")
@@ -72,6 +92,7 @@ if __name__ == "__main__":
                     #printImage(filename)
                     
                     cv2.waitKey(2000)
+                    midLED.pulse()
                     break
                 if k == BUTTON_EXIT:
                     running = False

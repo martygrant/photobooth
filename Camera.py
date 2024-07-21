@@ -47,16 +47,6 @@ class Camera:
 
         return self.capture()
 
-
-#todo 
-# read docs on camera specific settings i.e. white balance etc
-#turnoff screensaver
-#maybe have a gap between overlays
-#maybe set countdown to 3 from 5
-#maybe add all overlays at start and just swap layers during countdown
-#print countdown timing?
-#"smile" appears for a sec between screens
-
     def startPreview(self):
         self._camera.start_preview()
         time.sleep(1) # allow some time for the camera to calibrate
