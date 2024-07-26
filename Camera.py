@@ -33,19 +33,36 @@ class Camera:
         o.layer = 3   # Layer position
         return o
 
-    def countdownCapture(self):
+    def countdownCapture(self, leftLED, rightLED, midLED):
         print("countdownCapture")
         self.startPreview()
 
+        count = 0
+
+        LEDS = [leftLED, rightLED, midLED]
+
         for img_path in self.countdown_images:
             overlay = self.addoverlay(img_path)
-            time.sleep(1)
+            
+            if count == 0:
+                leftLED.on()
+            if count == 1:
+                midLED.on()
+            if count == 2:
+                rightLED.on()
+            
+            time.sleep(1.0)
             self._camera.remove_overlay(overlay)
+
+            count += 1
 
         self.stopPreview()
 
+        leftLED.off()
+        midLED.off()
+        rightLED.off()
 
-        return self.capture()
+        return self.capture(leftLED, rightLED, midLED)
 
     def startPreview(self):
         self._camera.start_preview()
@@ -61,18 +78,26 @@ class Camera:
         self._camera = picamera.PiCamera()
         self._camera.resolution = (width, height)
         self._camera.framerate = frameRate
-        self._camera.brightness = brightness
-        #camera.contrast = 8
-        #self._camera.video_stabilization = True
-        #camera.exposure_mode = 'auto'
+        self._camera.brightness = 60
+        self._camera.contrast = 10
+        self._camera.iso = 100
+        self._camera.exposure_mode = 'auto'
+        self._camera.awb_mode = 'auto'
+        self._camera.sharpness = 10
+
         self._camera.rotation = rotation
         self._rawCapture = picamera.array.PiRGBArray(self._camera, size=(width,height))
         self._camera.annotate_text_size = textSize
 
-    def capture(self):
+    def capture(self, leftLED, rightLED, midLED):
         # close and re-open the camera with the capture resolution
         self._camera.close()
         self.setupCamera(self._captureWidth, self._captureHeight, self._frameRate, self._brightness, self._rotation, self._textSize)
+
+        leftLED.on()
+        rightLED.on()
+        midLED.on()
+
         time.sleep(1) # allow some time for the camera to calibrate
 
         # take the image
