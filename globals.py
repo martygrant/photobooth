@@ -64,7 +64,7 @@ POLAROID_STYLE = True
 POLAROID_TEXT_Y = CAPTURE_H - 35
 POLAROID_TEXT_SIZE = 3
 POLAROID_TEXT_THICKNESS = 2
-POLAROID_TEXT = "Laura & Martin Crossbasket Castle 25.07.2020"
+POLAROID_TEXT = "Katrina & Nathan   Crossbasket Castle   28.07.2024"
 
 leftLED = PWMLED(26)
 rightLED = PWMLED(21)
@@ -78,3 +78,5 @@ def lightsOff():
     leftLED.off()
     midLED.off()
     rightLED.off()
+
+PRINT_ENABLED = True

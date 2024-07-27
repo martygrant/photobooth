@@ -22,7 +22,7 @@ class Camera:
         self.countdown_images = ['countdown_images/3.png', 'countdown_images/2.png', 'countdown_images/1.png']
 
     def addoverlay(self, image_path):
-        img = Image.open(image_path).convert('RGBA')
+        img = Image.open(image_path).convert('RGBA') # maybe convert isnt needed
         
         # Modify transparency of the image
         alpha = img.split()[3]
@@ -40,6 +40,7 @@ class Camera:
         o.alpha = 128  # this doesn't do anything? had to use ImageEnhance section above
         o.layer = 3    # default layer
         return o
+
 
     def countdownCapture(self):
         print("countdownCapture")
@@ -63,6 +64,9 @@ class Camera:
             count += 1
 
         self.stopPreview()
+
+        smileScreen()
+        cv2.waitKey(1000) # keyboard buttons can be pressed more than once and affect the state
 
         lightsOff()
 

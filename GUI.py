@@ -2,6 +2,7 @@ import numpy as np
 import cv2
 from PIL import ImageDraw, Image
 from globals import *
+import time
 
 def createFrame(w, h, colour):
     frame = np.zeros((h, w, 3), np.uint8)
@@ -118,8 +119,11 @@ def addPolaroidBorder(image):
 def startScreen():
     pressButtonFrame = createFrame(WINDOW_W, WINDOW_H, 0)
     
-    writeTextCenteredHorizontal(pressButtonFrame, CAPTURE_TEXT, CAPTURE_Y - 50, FONT_NORMAL, CAPTURE_SIZE, CAPTURE_THICKNESS, COLOUR_WHITE)
-    writeTextCenteredHorizontal(pressButtonFrame, CAPTURE_TEXT2, CAPTURE_Y + 70, FONT_NORMAL, CAPTURE_SIZE, CAPTURE_THICKNESS, COLOUR_WHITE)
+    writeTextCenteredHorizontal(pressButtonFrame, CAPTURE_TEXT, CAPTURE_Y - 200, FONT_NORMAL, CAPTURE_SIZE, CAPTURE_THICKNESS, COLOUR_WHITE)
+    writeTextCenteredHorizontal(pressButtonFrame, CAPTURE_TEXT2, CAPTURE_Y - 60, FONT_NORMAL, CAPTURE_SIZE, CAPTURE_THICKNESS, COLOUR_WHITE)
+
+    writeTextCenteredHorizontal(pressButtonFrame, "Please check there is photo paper in the printer (shiny side up!)", CAPTURE_Y + 230, FONT_NORMAL, 1.25, 2, COLOUR_WHITE)
+    writeTextCenteredHorizontal(pressButtonFrame, "If there is a problem ask wedding party for Martin (Best man)", CAPTURE_Y + 360, FONT_NORMAL, 1.25, 2, COLOUR_WHITE)
     
     renderFrame(pressButtonFrame)
 
@@ -182,3 +186,15 @@ def printScreen(progress):
 
 def renderFrame(frame):
     cv2.imshow('Photobooth', frame)
+
+def savedScreen():
+    screen = createFrame(WINDOW_W, WINDOW_H, 0)
+
+    writeTextCenteredHorizontal(screen, "Sorry we can't print right now", 900/2 - 100, FONT_NORMAL, 2, 2, COLOUR_WHITE)   
+    writeTextCenteredHorizontal(screen, "Photos have been saved digitally", 900/2 + 100, FONT_NORMAL, 2, 2, COLOUR_WHITE)   
+    writeTextCenteredHorizontal(screen, "And will be shared after the wedding!", 900/2 + 200, FONT_NORMAL, 2, 2, COLOUR_WHITE)   
+
+    renderFrame(screen)
+
+    cv2.waitKey(4000)
+    #time.sleep(4)

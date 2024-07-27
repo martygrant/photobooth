@@ -23,7 +23,7 @@ def createExportDirectory(path):
 def saveImage(image):
     datetimeStr = "{date:%Y-%m-%d_%H_%M_%S}".format(date=datetime.datetime.now())
 
-    originalFilename = "photobooth_original-{0}.jpg".format(datetimeStr)
+    originalFilename = "photobooth_{0}_original.jpg".format(datetimeStr)
 
     # Save photo locally
     if cv2.imwrite(OUTPUT_PATH + originalFilename, image):
@@ -38,7 +38,7 @@ def saveImage(image):
     #saveOriginalThread.start() # Spawn new thread to save photo. Python threads kill themselves once completed
     
     if POLAROID_STYLE == True:
-        polaroidFilename = "photobooth_polaroid-{0}.jpg".format(datetimeStr)
+        polaroidFilename = "photobooth_{0}_polaroid.jpg".format(datetimeStr)
         polaroid = addPolaroidBorder(image)
 
         if cv2.imwrite(OUTPUT_PATH + polaroidFilename, polaroid):
