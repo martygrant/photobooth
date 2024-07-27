@@ -1,34 +1,25 @@
 import cv2
-import picamera
 from pushover import *
-from gpiozero import Button
-from gpiozero import PWMLED
-from gpiozero import LED
-from signal import pause
 from backup import *
 from Camera import *
 from globals import *
 from GUI import *
 from cupsprint import *
-import threading
+import subprocess
 
-leftLED = PWMLED(26)
-rightLED = PWMLED(21)
-midLED = PWMLED(6)
 
-leftButton = Button(17)
-midButton = Button(5)
-rightButton = Button(22)
+
+
 
 # priority todo 
+# update polaroid text
 # finalise camera settings and resolution - exact 300dpi might be better
 # blur round photos? reposition camera
-# configure button light settings - cycle while printing
+# decide on overlay alpha value
 # print or put on screen about loading paper and ink?
 # turn off paper type register on printer
 # save photo is slow - put on another thread? maybe didnt make difference
 # add a "saved" screen if printing is disabled - add a flag for this
-# mouse shows on screen - make windows full screen??
 
 
 
@@ -39,11 +30,16 @@ rightButton = Button(22)
 # "smile" appears for a sec between screens
 # handle ink/paper errors
 # try gdrive again and see if auth problem happens again
-# capture banner has no alpha on monitor?
 # gif during countdown?
+
+def hide_mouse():
+    # use "unclutter" package to hide mouse after period of inactivity, 0 for right away
+    subprocess.Popen(['unclutter', '-idle', '0'])
 
 
 if __name__ == "__main__":
+    hide_mouse()
+
     createExportDirectory(OUTPUT_PATH)
     #CheckInternetConnection()
     checkUSBConnected(USB_DRIVE_PATH)
@@ -68,11 +64,9 @@ if __name__ == "__main__":
             cv2.waitKey(1) # keyboard buttons can be pressed more than once and affect the state
             # would be good to add a listener function to buttons
             
-            midLED.off()
-            leftLED.off()
-            rightLED.off()
+            lightsOff()
 
-            image = camera.countdownCapture(leftLED, rightLED, midLED)
+            image = camera.countdownCapture()
             outputScreen(image)
 
             midLED.off()
@@ -109,9 +103,7 @@ if __name__ == "__main__":
         if k == BUTTON_EXIT:
             running = False
 
-    leftLED.off()
-    midLED.off()
-    rightLED.off()
+    lightsOff()
 
     camera.close()
     cv2.destroyAllWindows()

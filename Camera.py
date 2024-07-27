@@ -1,7 +1,9 @@
 import picamera.array
 import picamera
 import time
-from PIL import Image
+from PIL import Image, ImageEnhance
+from GUI import *
+
 
 class Camera:
     def __init__(self, previewWidth, previewHeight, captureWidth, captureHeight, frameRate, brightness, rotation, textSize):
@@ -20,7 +22,13 @@ class Camera:
         self.countdown_images = ['countdown_images/3.png', 'countdown_images/2.png', 'countdown_images/1.png']
 
     def addoverlay(self, image_path):
-        img = Image.open(image_path)
+        img = Image.open(image_path).convert('RGBA')
+        
+        # Modify transparency of the image
+        alpha = img.split()[3]
+        alpha = ImageEnhance.Brightness(alpha).enhance(0.8)
+        img.putalpha(alpha)
+        
         pad = Image.new('RGBA', (
             ((img.width + 31) // 32) * 32,
             ((img.height + 15) // 16) * 16,
@@ -29,22 +37,20 @@ class Camera:
 
         # Create an overlay
         o = self._camera.add_overlay(pad.tobytes(), size=img.size)
-        o.alpha = 128  # Transparency of the overlay
-        o.layer = 3   # Layer position
+        o.alpha = 128  # this doesn't do anything? had to use ImageEnhance section above
+        o.layer = 3    # default layer
         return o
 
-    def countdownCapture(self, leftLED, rightLED, midLED):
+    def countdownCapture(self):
         print("countdownCapture")
         self.startPreview()
 
         count = 0
 
-        LEDS = [leftLED, rightLED, midLED]
-
         for img_path in self.countdown_images:
             overlay = self.addoverlay(img_path)
             
-            if count == 0:
+            if count == 0: # like in printImage() this could be done better with iterating a list
                 leftLED.on()
             if count == 1:
                 midLED.on()
@@ -58,11 +64,9 @@ class Camera:
 
         self.stopPreview()
 
-        leftLED.off()
-        midLED.off()
-        rightLED.off()
+        lightsOff()
 
-        return self.capture(leftLED, rightLED, midLED)
+        return self.capture()
 
     def startPreview(self):
         self._camera.start_preview()
@@ -89,7 +93,7 @@ class Camera:
         self._rawCapture = picamera.array.PiRGBArray(self._camera, size=(width,height))
         self._camera.annotate_text_size = textSize
 
-    def capture(self, leftLED, rightLED, midLED):
+    def capture(self):
         # close and re-open the camera with the capture resolution
         self._camera.close()
         self.setupCamera(self._captureWidth, self._captureHeight, self._frameRate, self._brightness, self._rotation, self._textSize)

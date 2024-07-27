@@ -1,6 +1,8 @@
 import os
 import cv2
-from PIL import ImageFont, ImageDraw, Image
+from PIL import ImageFont
+from gpiozero import Button
+from gpiozero import PWMLED
 
 WINDOW_W = 1440
 WINDOW_H = 900
@@ -63,3 +65,16 @@ POLAROID_TEXT_Y = CAPTURE_H - 35
 POLAROID_TEXT_SIZE = 3
 POLAROID_TEXT_THICKNESS = 2
 POLAROID_TEXT = "Laura & Martin Crossbasket Castle 25.07.2020"
+
+leftLED = PWMLED(26)
+rightLED = PWMLED(21)
+midLED = PWMLED(6)
+
+leftButton = Button(17)
+midButton = Button(5)
+rightButton = Button(22)
+
+def lightsOff():
+    leftLED.off()
+    midLED.off()
+    rightLED.off()

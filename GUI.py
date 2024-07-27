@@ -29,16 +29,31 @@ def writeTextCenteredHorizontal(frame, text, y, font, size, thickness, colour):
     
     writeText(frame, text, textX, y, font, size, thickness, colour)
 
-def overlay_transparent(background, overlay, x, y):
+import cv2
+import numpy as np
 
-    background_width = background.shape[1]
-    background_height = background.shape[0]
+def overlay_transparent(background, overlay, x, y, rotation_angle=0, scale=1.0):
+    background_height, background_width = background.shape[:2]
 
-    if x >= background_width or y >= background_height:
-        return background
+    # Scale the overlay image if scale is not 1
+    if scale != 1.0:
+        overlay = cv2.resize(overlay, (0, 0), fx=scale, fy=scale)
+    
+    # Get the dimensions of the overlay image
+    h, w = overlay.shape[:2]
 
-    h, w = overlay.shape[0], overlay.shape[1]
+    # Rotate the overlay image if rotation_angle is not zero
+    if rotation_angle != 0:
+        # Get the center of the overlay image
+        center = (w // 2, h // 2)
+        # Compute the rotation matrix
+        rotation_matrix = cv2.getRotationMatrix2D(center, rotation_angle, 1.0)
+        # Perform the rotation
+        overlay = cv2.warpAffine(overlay, rotation_matrix, (w, h), flags=cv2.INTER_LINEAR, borderMode=cv2.BORDER_TRANSPARENT)
+        # Recompute dimensions after rotation
+        h, w = overlay.shape[:2]
 
+    # Ensure the overlay fits within the background dimensions
     if x + w > background_width:
         w = background_width - x
         overlay = overlay[:, :w]
@@ -47,19 +62,34 @@ def overlay_transparent(background, overlay, x, y):
         h = background_height - y
         overlay = overlay[:h]
 
+    if x < 0:
+        overlay = overlay[:, -x:]
+        w += x
+        x = 0
+
+    if y < 0:
+        overlay = overlay[-y:, :]
+        h += y
+        y = 0
+
+    # If overlay does not have an alpha channel, add one
     if overlay.shape[2] < 4:
         overlay = np.concatenate(
             [
                 overlay,
-                np.ones((overlay.shape[0], overlay.shape[1], 1), dtype = overlay.dtype) * 255
+                np.ones((overlay.shape[0], overlay.shape[1], 1), dtype=overlay.dtype) * 255
             ],
-            axis = 2,
+            axis=2,
         )
 
     overlay_image = overlay[..., :3]
     mask = overlay[..., 3:] / 255.0
 
+    # Ensure the area in the background is the same size as the overlay
     background[y:y+h, x:x+w] = (1.0 - mask) * background[y:y+h, x:x+w] + mask * overlay_image
+
+    return background
+
 
 def addPolaroidBorder(image):
     # scale image down proportionally
@@ -109,7 +139,7 @@ def outputScreen(image):
     overlay = image.copy()
 
     cv2.rectangle(image, (x, y), (x+w, y+h), COLOUR_BLACK, -1)
-    alpha = 0.3
+    alpha = 0.4
     cv2.addWeighted(overlay, alpha, image, 1 - alpha, 0, image)
 
     # write start over and print text
@@ -126,7 +156,10 @@ def smileScreen():
 
     image = createFrame(WINDOW_W, WINDOW_H, 0)
 
-    writeTextCentered(image, SMILE_TEXT, FONT_NORMAL, SMILE_TEXT_SIZE, SMILE_TEXT_THICKNESS, COLOUR_WHITE)
+    overlay_transparent(image, arrow, int(WINDOW_W/2) - 120, int(WINDOW_H/2) - 300, 180, 2.5)
+
+    writeText(image, SMILE_TEXT, 350, int(WINDOW_H/2) + 350, FONT_NORMAL, SMILE_TEXT_SIZE, SMILE_TEXT_THICKNESS, COLOUR_WHITE)
+    
     renderFrame(image)
 
 def printScreen(progress):
@@ -143,9 +176,9 @@ def printScreen(progress):
     draw.text((1400/2-100, 900/2 - 50), progress, font=roboto_font)
     screen = cv2.cvtColor(np.array(pil_im), cv2.COLOR_RGB2BGR)
 
-    writeTextCenteredHorizontal(screen, "Collect below!", 900/2 + 300, FONT_NORMAL, 4, 4, COLOUR_WHITE)    
+    writeTextCenteredHorizontal(screen, "Please keep it!", 900/2 + 300, FONT_NORMAL, 4, 4, COLOUR_WHITE)    
 
-    return screen
+    renderFrame(screen)
 
 def renderFrame(frame):
     cv2.imshow('Photobooth', frame)
