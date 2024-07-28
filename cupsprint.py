@@ -9,7 +9,15 @@ def printImage(filename):
     printer = list(printers.keys())[0]
     print("Using printer '{0}'".format(printer))
 
-    job = conn.printFile(printer, filename, "", {}) # can specify print options here
+    options = {
+        'media': 'Custom.4x6in',
+        'landscape': 'True',
+        'fit-to-page': 'True',
+        'scaling': '100',
+        'Resolution': '300dpi'
+    }
+
+    job = conn.printFile(printer, OUTPUT_PATH + filename, "", options) # can specify print options here
 
     lightCount = 0
 
@@ -40,5 +48,6 @@ def printImage(filename):
             cv2.waitKey(1000)
             
         else:
+            lightsOff()
             print("print job ({}) done!".format(filename))
             return

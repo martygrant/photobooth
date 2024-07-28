@@ -15,6 +15,9 @@ import subprocess
 # finalise camera settings and resolution - exact 300dpi might be better
 # blur round photos? reposition camera
 
+
+
+
 # todo
 # maybe have a gap between countdown overlays
 # maybe add all countdown overlays at start and just swap layers during countdown
@@ -51,7 +54,7 @@ if __name__ == "__main__":
     while running:
         startScreen()
 
-        k = cv2.waitKey(1000)
+        k = cv2.waitKey(1)
         if k == BUTTON_CAPTURE or midButton.is_pressed:
             #smileScreen()
             renderFrame(createFrame(WINDOW_W, WINDOW_H, 0))
@@ -82,10 +85,10 @@ if __name__ == "__main__":
 
                     # Save photo and send to printer
                     filename = saveImage(image)
-                    #if PRINT_ENABLED == True:
-                        #printImage(filename)
-                    #else:
-                        #savedScreen()
+                    if PRINT_ENABLED == True:
+                        printImage(filename)
+                    else:
+                        savedScreen()
                     
                     cv2.waitKey(2000)
                     midLED.pulse(fade_in_time=0.8, fade_out_time=0.8)

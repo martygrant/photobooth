@@ -8,8 +8,8 @@ WINDOW_W = 1440
 WINDOW_H = 900
 
 # capture and print resolution (match with aspect ratio of print, using 3:2 for 6x4 print)
-CAPTURE_W = 2592
-CAPTURE_H = 1728
+CAPTURE_W = 2592#1800
+CAPTURE_H = 1728#1200
 
 OUTPUT_PATH = str(os.getcwd()) + "/photos/"
 USB_DRIVE_PATH = "/media/martin/MARTIN/photos/"
