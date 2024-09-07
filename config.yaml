@@ -1,0 +1,16 @@
+window_title: Photobooth
+pca_params:
+  n_components: 224
+umap_params:
+  min_dist:
+    - 0.01
+    - 0.1
+    - 0.5
+  spread: 1.0
+  metrics:
+    - euclidean
+    - l1
+    - manhattan
+visualize_params:
+  median_threshold: 6
+n_components: 0.2

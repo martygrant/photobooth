@@ -71,7 +71,7 @@ rightLED = PWMLED(21)
 midLED = PWMLED(6)
 
 leftButton = Button(17)
-midButton = Button(5)
+middleButton = Button(5)
 rightButton = Button(22)
 
 def lightsOff():
