@@ -4,8 +4,7 @@ from PIL import ImageFont
 from gpiozero import Button
 from gpiozero import PWMLED
 
-WINDOW_W = 1440
-WINDOW_H = 900
+config = {}
 
 # capture and print resolution (match with aspect ratio of print, using 3:2 for 6x4 print)
 CAPTURE_W = 2592#1800
@@ -18,27 +17,26 @@ GDRIVE_FOLDER_ID = "1U1aCTd_K84IdQQ9_z1UUkZt7EbEk9_qT"
 COUNTDOWN_TIME = 5
 COUNTDOWN_SIZE = 6
 COUNTDOWN_THICKNESS = 5
-COUNTDOWN_OVERLAY_X = WINDOW_W / 2
-COUNTDOWN_OVERLAY_Y = (WINDOW_H / 2)
+COUNTDOWN_OVERLAY_X = 1440 / 2#config["window"]["width"] / 2
+COUNTDOWN_OVERLAY_Y = 900 / 2 #config["window"]["height"] / 2
 COUNTDOWN_OVERLAY_W = COUNTDOWN_OVERLAY_X + 200
 COUNTDOWN_OVERLAY_H = COUNTDOWN_OVERLAY_Y + 200
 
 CAPTURE_TEXT = "Press the middle button"
 CAPTURE_TEXT2 = "below to take a photo!"
-CAPTURE_X = (WINDOW_W / 2) - 50
-CAPTURE_Y = (WINDOW_H / 2) 
+CAPTURE_Y = 900 /2 #(globals.config["window"]["height"] / 2) 
 CAPTURE_SIZE = 3.5
 CAPTURE_THICKNESS = 3
 
 STARTOVER_TEXT = "Try Again"
 STARTOVER_X = 50
-STARTOVER_Y = WINDOW_H - 30
+STARTOVER_Y = 900 / 30 #globals.config["window"]["height"] - 30
 STARTOVER_SIZE = 3
 STARTOVER_THICKNESS = 3
 
 PRINT_TEXT = "Print!"
-PRINT_TEXT_X = WINDOW_W - 350
-PRINT_TEXT_Y = WINDOW_H - 30
+PRINT_TEXT_X = 1440 - 350 #globals.config["window"]["width"] - 350
+PRINT_TEXT_Y = 900 - 30 #globals.config["window"]["height"] - 30
 PRINT_TEXT_SIZE = 3
 PRINT_TEXT_THICKNESS = 3
 
@@ -78,5 +76,3 @@ def lightsOff():
     leftLED.off()
     midLED.off()
     rightLED.off()
-
-PRINT_ENABLED = True

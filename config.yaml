@@ -1,16 +1,15 @@
-window_title: Photobooth
-pca_params:
-  n_components: 224
-umap_params:
-  min_dist:
-    - 0.01
-    - 0.1
-    - 0.5
-  spread: 1.0
-  metrics:
-    - euclidean
-    - l1
-    - manhattan
-visualize_params:
-  median_threshold: 6
-n_components: 0.2
+print_enabled: true
+window:
+  title: "Photobooth"
+  width: 1440
+  height: 900
+camera: # capture and print resolution (match with aspect ratio of print, using 3:2 for 6x4 print)
+  width: 2592 #1800
+  height: 1728 #1200
+text:
+  start_screen:
+    text_1: "Press the middle button"
+    text_2: "below to take a photo!"
+    y: 720 #(globals.config["window"]["width"] / 2)
+    size: 3.5
+    thickness: 3

@@ -2,14 +2,13 @@ import cv2
 from pushover import *
 from backup import *
 from Camera import *
-from globals import *
+import globals
 from GUI import *
 from cupsprint import *
 from enum import Enum
 import subprocess
 import yaml
 import argparse
-
 
 inputCapture = False
 inputReset = False
@@ -35,8 +34,6 @@ def switchState(newState):
 
 # priority todo 
 # finalise camera settings and resolution - exact 300dpi might be better
-# blur round photos? reposition camera
-# try changing manual focus
 # update readme
 #   need PyYAML
 
@@ -82,23 +79,26 @@ def events():
     inputReset = False
     inputPrint = False
 
-    if leftButton.is_pressed: # todo or keyboard
+    if globals.leftButton.is_pressed: # todo or keyboard
         inputReset = True
-    elif middleButton.is_pressed:
+    elif globals.middleButton.is_pressed:
         inputCapture = True
-    elif rightButton.is_pressed:
+    elif globals.rightButton.is_pressed:
         inputPrint = True
+
+    # todo be careful state can't be advanced when it shouldn't be
 
     return True # todo return if esc is pressed
 
 def update():
     if state == State.START:
 
-        if inputCapture == True:
+        #if inputCapture == True:
             switchState(State.COUNTDOWN)
 
-    elif state == State.COUNTDOWN:
-        switchState(State.DISPLAY)
+    #elif state == State.COUNTDOWN:
+        #switchState(State.DISPLAY)
+        
 
     elif state == State.DISPLAY:
         if inputReset == True:
@@ -111,23 +111,34 @@ def update():
 
 
 
-"""
-def render():
+
+def render(camera):
     if state == State.START:
+        startScreen()
 
     elif state == State.COUNTDOWN:
+        #smileScreen()
+        renderFrame(createFrame(globals.config["window"]["width"], globals.config["window"]["width"], 0))
+        cv2.waitKey(1) # keyboard buttons can be pressed more than once and affect the state
+        # would be good to add a listener function to buttons
+        image = camera.countdownCapture()
+        outputScreen(image)
+
+        cv2.imwrite("test.jpg", image)
+        exit(0)
 
     elif state == State.DISPLAY:
+        vox = 1
 
     elif state == State.PRINT:
+        vox = 1
 
-"""
 
 def main():
     hide_mouse()
-    createExportDirectory(OUTPUT_PATH)
+    createExportDirectory(globals.OUTPUT_PATH)
     #CheckInternetConnection()
-    checkUSBConnected(USB_DRIVE_PATH)
+    checkUSBConnected(globals.USB_DRIVE_PATH)
     
     parser = argparse.ArgumentParser()
     parser.add_argument("config", help="Path to a .yaml configuration file.")
@@ -137,37 +148,39 @@ def main():
     # todo add all globals to config
     # todo log the config values
     with open(args.config) as f:
-        config = yaml.load(f, Loader=yaml.FullLoader)
-        print(config)
+        globals.config = yaml.load(f, Loader=yaml.FullLoader)
+        print(globals.config)
+
+    # todo set a countdown param?
+    # todo magic numbers
+    camera = Camera(globals.config["window"]["width"], globals.config["window"]["width"], globals.config["camera"]["width"], globals.config["camera"]["height"], 30, 55, 180, 120)
+
+    cv2.namedWindow(globals.config["window"]["title"], cv2.WINDOW_NORMAL)
+    #cv2.setWindowProperty(config["window"]["title"], cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
+    cv2.imshow(globals.config["window"]["title"], createFrame(1440, 900, 0)) 
+    #cv2.imshow(config["window"]["title"], createFrame(200, 200, 0)) 
+
+    #cv2.waitKey(0)
 
     running = True
     while running:
         running = events()
         update()
-        #render(screen)
+        render(camera)
 
 
-    #lightsOff()
+    lightsOff()
     #camera.close()
-    #cv2.destroyAllWindows()
-
-
+    cv2.destroyAllWindows()
 
 
 
 
 if __name__ == "__main__":
     main()
-    
-
-    
 """
-    cv2.namedWindow("Photobooth", cv2.WINDOW_NORMAL)
-    cv2.setWindowProperty('Photobooth', cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
-    
-
     # todo set a countdown param?
-    camera = Camera(WINDOW_W, WINDOW_H, CAPTURE_W, CAPTURE_H, 30, 55, 180, 120)
+    camera = Camera(globals.config["window"]["width"], globals.config["window"]["width"], CAPTURE_W, CAPTURE_H, 30, 55, 180, 120)
 
     midLED.pulse(fade_in_time=0.8, fade_out_time=0.8)
 
@@ -179,7 +192,7 @@ if __name__ == "__main__":
         k = cv2.waitKey(1)
         if k == BUTTON_CAPTURE or middleButton.is_pressed:
             #smileScreen()
-            renderFrame(createFrame(WINDOW_W, WINDOW_H, 0))
+            renderFrame(createFrame(globals.config["window"]["width"], globals.config["window"]["width"], 0))
             cv2.waitKey(1) # keyboard buttons can be pressed more than once and affect the state
             # would be good to add a listener function to buttons
             
@@ -200,12 +213,12 @@ if __name__ == "__main__":
 
                     break
                 if k == BUTTON_PRINT or rightButton.is_pressed:
-                    renderFrame(createFrame(WINDOW_W, WINDOW_H, 0))
+                    renderFrame(createFrame(globals.config["window"]["width"], globals.config["window"]["width"], 0))
                     lightsOff()
 
                     # Save photo and send to printer
                     filename = saveImage(image)
-                    if PRINT_ENABLED == True:
+                    if config["print_enabled"] == True:
                         printImage(filename)
                     else:
                         savedScreen()

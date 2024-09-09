@@ -1,8 +1,7 @@
 import numpy as np
 import cv2
 from PIL import ImageDraw, Image
-from globals import *
-import time
+import globals
 
 def createFrame(w, h, colour):
     frame = np.zeros((h, w, 3), np.uint8)
@@ -29,9 +28,6 @@ def writeTextCenteredHorizontal(frame, text, y, font, size, thickness, colour):
     textX = (frame.shape[1] - textsize[0]) / 2
     
     writeText(frame, text, textX, y, font, size, thickness, colour)
-
-import cv2
-import numpy as np
 
 def overlay_transparent(background, overlay, x, y, rotation_angle=0, scale=1.0):
     background_height, background_width = background.shape[:2]
@@ -117,27 +113,29 @@ def addPolaroidBorder(image):
     return polaroidFrame
     
 def startScreen():
-    pressButtonFrame = createFrame(WINDOW_W, WINDOW_H, 0)
+    pressButtonFrame = createFrame(globals.config["window"]["width"], globals.config["window"]["width"], 0)
     
-    writeTextCenteredHorizontal(pressButtonFrame, CAPTURE_TEXT, CAPTURE_Y - 200, FONT_NORMAL, CAPTURE_SIZE, CAPTURE_THICKNESS, COLOUR_WHITE)
-    writeTextCenteredHorizontal(pressButtonFrame, CAPTURE_TEXT2, CAPTURE_Y - 60, FONT_NORMAL, CAPTURE_SIZE, CAPTURE_THICKNESS, COLOUR_WHITE)
+    # todo magic number for y pos
+    writeTextCenteredHorizontal(pressButtonFrame, globals.config["text"]["start_screen"]["text_1"], globals.config["text"]["start_screen"]["y"] - 200, globals.FONT_NORMAL, int(globals.config["text"]["start_screen"]["size"]), int(globals.config["text"]["start_screen"]["thickness"]), globals.COLOUR_WHITE)
+    writeTextCenteredHorizontal(pressButtonFrame, globals.config["text"]["start_screen"]["text_2"], globals.config["text"]["start_screen"]["y"] - 60, globals.FONT_NORMAL, int(globals.config["text"]["start_screen"]["size"]), int(globals.config["text"]["start_screen"]["thickness"]), globals.COLOUR_WHITE)
 
-    writeTextCenteredHorizontal(pressButtonFrame, "Please check there is photo paper in the printer (shiny side up!)", CAPTURE_Y + 230, FONT_NORMAL, 1.25, 2, COLOUR_WHITE)
-    writeTextCenteredHorizontal(pressButtonFrame, "If there is a problem ask wedding party for Martin (Best man)", CAPTURE_Y + 360, FONT_NORMAL, 1.25, 2, COLOUR_WHITE)
+    writeTextCenteredHorizontal(pressButtonFrame, "Please check there is photo paper in the printer (shiny side up!)", globals.config["text"]["start_screen"]["y"] + 230, globals.FONT_NORMAL, 1.25, 2, globals.COLOUR_WHITE)
+    writeTextCenteredHorizontal(pressButtonFrame, "If there is a problem ask wedding party for Martin (Best man)", globals.config["text"]["start_screen"]["y"] + 360, globals.FONT_NORMAL, 1.25, 2, globals.COLOUR_WHITE)
     
     renderFrame(pressButtonFrame)
+    
 
 def outputScreen(image):
     print("outputScreen")
 
-    blackFrame = createFrame(WINDOW_W, WINDOW_H, 0)
+    blackFrame = createFrame(globals.config["window"]["width"], globals.config["window"]["width"], 0)
     renderFrame(blackFrame)
 
     image = cv2.resize(image, (1440, 900))
 
     x = 0
-    y = WINDOW_H - 120
-    w = WINDOW_W
+    y = globals.config["window"]["width"] - 120
+    w = globals.config["window"]["width"]
     h = 120
 
     overlay = image.copy()
@@ -158,16 +156,16 @@ def outputScreen(image):
 def smileScreen():
     print("smile screen")
 
-    image = createFrame(WINDOW_W, WINDOW_H, 0)
+    image = createFrame(globals.config["window"]["width"], globals.config["window"]["width"], 0)
 
-    overlay_transparent(image, arrow, int(WINDOW_W/2) - 120, int(WINDOW_H/2) - 300, 180, 2.5)
+    overlay_transparent(image, globals.arrow, int(globals.config["window"]["width"]/2) - 120, int(globals.config["window"]["width"]/2) - 300, 180, 2.5)
 
-    writeText(image, SMILE_TEXT, 350, int(WINDOW_H/2) + 350, FONT_NORMAL, SMILE_TEXT_SIZE, SMILE_TEXT_THICKNESS, COLOUR_WHITE)
+    writeText(image, globals.SMILE_TEXT, 350, int(globals.config["window"]["width"]/2) + 350, globals.FONT_NORMAL, globals.SMILE_TEXT_SIZE, globals.SMILE_TEXT_THICKNESS, globals.COLOUR_WHITE)
     
     renderFrame(image)
 
 def printScreen(progress):
-    screen = createFrame(WINDOW_W, WINDOW_H, 0)
+    screen = createFrame(globals.config["window"]["width"], globals.config["window"]["width"], 0)
 
     # todo remove hardcoded text positions
 
@@ -188,7 +186,7 @@ def renderFrame(frame):
     cv2.imshow('Photobooth', frame)
 
 def savedScreen():
-    screen = createFrame(WINDOW_W, WINDOW_H, 0)
+    screen = createFrame(globals.config["window"]["width"], globals.config["window"]["width"], 0)
 
     writeTextCenteredHorizontal(screen, "Sorry we can't print right now", 900/2 - 100, FONT_NORMAL, 2, 2, COLOUR_WHITE)   
     writeTextCenteredHorizontal(screen, "Photos have been saved digitally", 900/2 + 100, FONT_NORMAL, 2, 2, COLOUR_WHITE)   

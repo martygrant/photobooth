@@ -5,7 +5,7 @@ import socket
 import threading
 #from pydrive.auth import GoogleAuth
 #from pydrive.drive import GoogleDrive
-from globals import *
+import globals
 from GUI import *
 
 # GOOGLE DRIVE
@@ -26,7 +26,7 @@ def saveImage(image):
     originalFilename = "photobooth_{0}_original.jpg".format(datetimeStr)
 
     # Save photo locally
-    if cv2.imwrite(OUTPUT_PATH + originalFilename, image):
+    if cv2.imwrite(globals.OUTPUT_PATH + originalFilename, image):
         print("SUCCESS: Saved original locally:", originalFilename)
 
     # Save photo to external usb drive
@@ -37,11 +37,11 @@ def saveImage(image):
     #saveOriginalThread = threading.Thread(target=backupToGoogleDrive, args=(originalFilename, OUTPUT_PATH, image))
     #saveOriginalThread.start() # Spawn new thread to save photo. Python threads kill themselves once completed
     
-    if POLAROID_STYLE == True:
+    if globals.POLAROID_STYLE == True:
         polaroidFilename = "photobooth_{0}_polaroid.jpg".format(datetimeStr)
         polaroid = addPolaroidBorder(image)
 
-        if cv2.imwrite(OUTPUT_PATH + polaroidFilename, polaroid):
+        if cv2.imwrite(globals.OUTPUT_PATH + polaroidFilename, polaroid):
             print("SUCCESS: Saved polaroid locally:", polaroidFilename)
 
         saveToUSB(polaroidFilename, polaroid)
@@ -63,8 +63,8 @@ def checkUSBConnected(path):
         return True
 
 def saveToUSB(filename, image):
-    if checkUSBConnected(USB_DRIVE_PATH) == True:
-        cv2.imwrite(USB_DRIVE_PATH + filename, image)
+    if checkUSBConnected(globals.USB_DRIVE_PATH) == True:
+        cv2.imwrite(globals.USB_DRIVE_PATH + filename, image)
         print("SUCCESS: Saved to USB Drive:", filename)
     else:
         print("ERROR: Did not save to USB Drive:", filename) 

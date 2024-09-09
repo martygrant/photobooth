@@ -3,7 +3,7 @@ import picamera
 import time
 from PIL import Image, ImageEnhance
 from GUI import *
-
+import globals
 
 class Camera:
     def __init__(self, previewWidth, previewHeight, captureWidth, captureHeight, frameRate, brightness, rotation, textSize):
@@ -52,11 +52,11 @@ class Camera:
             overlay = self.addoverlay(img_path)
             
             if count == 0: # like in printImage() this could be done better with iterating a list
-                leftLED.on()
+                globals.leftLED.on()
             if count == 1:
-                midLED.on()
+                globals.midLED.on()
             if count == 2:
-                rightLED.on()
+                globals.rightLED.on()
             
             time.sleep(1.0)
             self._camera.remove_overlay(overlay)
@@ -68,7 +68,7 @@ class Camera:
         smileScreen()
         cv2.waitKey(1000) # keyboard buttons can be pressed more than once and affect the state
 
-        lightsOff()
+        globals.lightsOff()
 
         return self.capture()
 
@@ -102,9 +102,9 @@ class Camera:
         self._camera.close()
         self.setupCamera(self._captureWidth, self._captureHeight, self._frameRate, self._brightness, self._rotation, self._textSize)
 
-        leftLED.on()
-        rightLED.on()
-        midLED.on()
+        globals.leftLED.on()
+        globals.rightLED.on()
+        globals.midLED.on()
 
         time.sleep(1) # allow some time for the camera to calibrate
 
